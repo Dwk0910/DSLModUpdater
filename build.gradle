@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+}
+
+group 'kr.kro.dslofficial'
+
+repositories {
+    mavenCentral()
+}
+
+compileJava.options.encoding = 'UTF-8'
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class' : 'kr.kro.dslofficial.Main'
+    }
+
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+dependencies {
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation 'commons-io:commons-io:2.19.0'
+    implementation 'net.lingala.zip4j:zip4j:2.11.5'
+    implementation fileTree(dir: 'libs', includes: ['*.jar'])
+}
+
+test {
+    useJUnitPlatform()
+}
