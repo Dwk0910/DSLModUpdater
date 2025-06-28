@@ -25,6 +25,81 @@ Release Date : 2025.04.17.
 ### 2.1. 실행
 설치 후 빈 폴더에 압축을 푸신 뒤, `DSLModUpdater.exe` 파일을 실행합니다. 만약 바이러스 검사로 실행이 되지 않는다면, `compile` 폴더의 `run.bat` 파일로 이를 대체할 수 있습니다.
 
-![Readme_1](https://www.dslofficial.org/static/media/1.f863dade76c92c36f8a4.png)<br/>
+![Readme_1](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/1.png)<br/>
 또는<br/>
-![Readme_2](https://www.dslofficial.org/static/media/2.2a05ae59f31df432c3d7.png)<br/>
+![Readme_2](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/2.png?raw=true)<br/>
+![Readme_3](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/3.png?raw=true)
+
+---
+
+![Readme_4](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/4.png?raw=true)<br/>
+
+> `Enter`를 눌러 계속합니다.
+
+---
+
+### 2.2. `mods` 경로 넣기 (`mods`폴더의 `절대경로`를 알고, 이를 넣으실 수 있는 분은 2.3. 단계로 넘어가십시오)
+![Readmd_5](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/5.png?raw=true)<br/>
+
+> `Win + R`을 누릅니다<br/>
+
+![Readme_6](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/6.png?raw=true)<br/>
+![Readme_7](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/7.png?raw=true)<br/>
+ 
+> `열기`란에 `%appdata%`를 넣은 뒤, `확인`버튼을 누릅니다.
+
+![Readme_8](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/8.png?raw=true)<br/>
+
+> 파일 탐색기가 열리면, `.minecraft` 폴더에 들어갑니다. 없는 경우 `Minecraft`를 먼저 설치하십시오.
+
+![Readme_9](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/9.png?raw=true)<br/>
+
+> `mods`폴더에 들어갑니다. 없을 경우 새로 만듭니다.
+
+![Readme_10](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/10.png?raw=true)<br/>
+![Readme_11](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/11.png?raw=true)<br/>
+
+> 위의 주소창에서 `mods`를 우클릭 한 뒤, `주소 복사`를 클릭합니다.
+
+![Readme_12](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/12.png?raw=true)<br/>
+
+> 다시 `DSLModUpdater`로 돌아와, `Ctrl + V`로 붙여 넣습니다.
+
+> `Enter`를 눌러 계속합니다.
+
+---
+
+### 2.3. 서버 모드 적용하기
+![Readme_13](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/13.png?raw=true)<br/>
+> `1`을 입력한 후, `Enter`를 누릅니다.
+
+![Readme_14](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/14.png?raw=true)<br/>
+> `y`또는 `yes`를 입력한 후, `Enter`를 누릅니다.
+
+![Readme_15](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/15.png?raw=true)<br/>
+서버 내 모든 모드들을 알아서 가져온 뒤 설치합니다.
+
+![Readme_16](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/16.png?raw=true)<br/>
+모드의 버전명이 일치한 것을 알 수 있습니다. (이 때, 입력한 `mods`폴더에 가보면 모드들이 설치되어 있는 것을 확인하실 수 있습니다.)
+
+---
+
+### 2.4. 업데이터 종료
+![Readme_17](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/17.png?raw=true)<br/>
+![Readme_18](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/18.png?raw=true)<br/>
+![Readme_19](https://github.com/Dwk0910/DSLModUpdater/blob/master/docs/19.png?raw=true)<br/>
+
+> `3(뒤로가기)` > `3(업데이터 종료)` > `y`를 눌러 업데이터를 종료합니다.
+
+---
+
+### 3. Credits
+`@neatore`는 여러분들의 편하고 재밌는 서버생활을 위해 항상 코딩합니다.<br/>
+버그제보는 `@neatore`또는 `@dongwan0910` DM으로 부탁드립니다.<br/>
+**감사합니다.**
+
+---
+
+***Thanks for reading!***
+<br/>
+Copyright 2024-2025. DSL All rights reserved.
