@@ -93,7 +93,7 @@ Release Date : 2025.04.17.
 
 ---
 
-### 3. Credits
+## 3. Credits
 `@neatore`는 여러분들의 편하고 재밌는 서버생활을 위해 항상 코딩합니다.<br/>
 버그제보는 `@neatore`또는 `@dongwan0910` DM으로 부탁드립니다.<br/>
 **감사합니다.**
