@@ -1,14 +1,14 @@
 package kr.kro.dslofficial.test;
 
-public class Test {
-    // method
-    // [접근 제한자] [동적여부(static, non-static)] [반환타입] [함수이름] ([매개변수]) {}
-    // public or protected or private
-    public static void main(String[] args) {
-        System.out.println(f(2, 5, 10));
-    }
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-    public static int f(int x, int y, int z) {
-        return x * y * z;
+public class Test {
+    public static void main(String[] args) {
+        List<String> list = Arrays.asList("str1", "str2", "str3", "abc", "abcd", "ABC", "ABCD");
+        list.stream()
+                .filter(x -> x.startsWith("s"))
+                .forEach(System.out::println);
     }
 }

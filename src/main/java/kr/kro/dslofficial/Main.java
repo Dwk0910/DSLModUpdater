@@ -1,16 +1,10 @@
 package kr.kro.dslofficial;
 
-import kr.kro.dslofficial.func.ApplyMods;
-import kr.kro.dslofficial.func.Options;
-
 import org.apache.commons.io.FileUtils;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import java.io.*;
-import java.net.*;
 
 import java.util.Scanner;
 import java.util.Map;
@@ -18,13 +12,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
+import java.io.*;
+import java.net.*;
+
+import kr.kro.dslofficial.func.ApplyMods;
+import kr.kro.dslofficial.func.Options;
+
 public class Main extends Util {
-    public static final String version = "v1.1.0";
     public static final int width = 80;
+    public static final List<File> fileList = new ArrayList<>();
+    public static final JSONParser parser = new JSONParser();
+    public static final Scanner scan = new Scanner(System.in);
+    public static final String version = "v1.1.0";
+
     public static File modsDir;
-    public static List<File> fileList = new ArrayList<>();
-    public static Scanner scan = new Scanner(System.in);
-    public static JSONParser parser = new JSONParser();
 
     public static void main(String[] args) throws URISyntaxException {
         clearConsole();
@@ -45,7 +46,6 @@ public class Main extends Util {
                 printMessage("error", "새로운 버전(" + new_ver + ")이 릴리즈되었습니다. 업데이트 후 실행해주세요.");
                 System.exit(-1);
             }
-
         } catch (IOException e) {
             printMessage("error", "예외 발생 : " + e.getMessage());
             System.exit(-1);
@@ -198,7 +198,7 @@ public class Main extends Util {
             menu.add("설정");
             menu.add("업데이터 종료");
 
-            Util.printMenu(menu);
+            printMenu(menu);
 
             System.out.println();
             String typed_str = input("선택하실 메뉴 번호를 입력해 주세요");
@@ -223,7 +223,7 @@ public class Main extends Util {
 
                 default -> {
                     printMessage("error", "잘못 입력하셨습니다. 메인 화면으로 돌아갑니다...");
-                    Util.pause(1000);
+                    pause(1000);
                     continue;
                 }
             }
@@ -239,6 +239,7 @@ public class Main extends Util {
             case "info" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("INFO", "green", "none", true, false, false) + "] : " + message);
             case "error" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("ERROR", "red", "none", true, false, false) + "] : " + message);
             case "warn" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("WARN", "yellow", "none", true, false, false) + "] : " + message);
+            default -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "] : " + message);
         }
     }
 }

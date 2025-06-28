@@ -13,8 +13,8 @@ import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.FileReader;
+import java.io.IOException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,10 +27,11 @@ import java.net.http.HttpResponse;
 import java.util.*;
 
 public class ApplyMods extends Util {
-    private static JSONParser parser = new JSONParser();
+    private static final File temp_dir = Main.fileList.get(1);
+    private static final File tempdata = new File(temp_dir + File.separator + "mods.dat");
+    private static final JSONParser parser = new JSONParser();
+
     private static URL modzipurl;
-    private static File temp_dir = Main.fileList.get(1);
-    private static File tempdata = new File(temp_dir + File.separator + "mods.dat");
 
     private static String official_latest;
     private static String local_latest;
