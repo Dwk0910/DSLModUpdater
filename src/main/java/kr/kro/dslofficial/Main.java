@@ -3,11 +3,8 @@ package kr.kro.dslofficial;
 import kr.kro.dslofficial.func.ApplyMods;
 import kr.kro.dslofficial.func.Options;
 
-import org.apache.commons.io.FileUtils;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.net.*;
@@ -21,11 +18,7 @@ import java.util.ArrayList;
 public class Main extends Util {
     public static final String version = "v1.1.0";
     public static final int width = 80;
-    public static File modsDir;
-    public static List<File> fileList = new ArrayList<>();
     public static Scanner scan = new Scanner(System.in);
-    public static JSONParser parser = new JSONParser();
-
     public static void main(String[] args) throws URISyntaxException {
         clearConsole();
         printMessage("info", "DSL모드 업데이터입니다. 환영합니다. [ " + version + " ]");
@@ -36,19 +29,71 @@ public class Main extends Util {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 printMessage("error", "업데이트 서버와의 연결 실패입니다. 관리자에게 문의해주세요.");
-                System.exit(-1);
+                return;
             }
 
             byte[] bytes = connection.getInputStream().readAllBytes();
             String new_ver = new String(bytes).replaceAll("\\s+", "");
             if (!new_ver.equals(version)) {
                 printMessage("error", "새로운 버전(" + new_ver + ")이 릴리즈되었습니다. 업데이트 후 실행해주세요.");
-                System.exit(-1);
+                // javaagent에 의한 실행일 경우
+                if (args.length != 0 && args[0].equals("--ByAgent")) {
+                    try {
+                        Thread.sleep(3000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                return;
             }
-
         } catch (IOException e) {
             printMessage("error", "예외 발생 : " + e.getMessage());
-            System.exit(-1);
+            return;
+        }
+
+        boolean first = initialize();
+        // args.length가 0이 아니고 (1 이상) args[0]이 --ByAgent이며, 첫실행(미초기화상태)이 아닐 경우
+        if (args.length != 0 && args[0].equals("--ByAgent") && !first) {
+            if (waitInput("Agent 모드로 실행합니다. 기본 모드로 실행하시려면 3초 이내에 ENTER를 눌러 주십시오...", 3000) == null) {
+                JSONObject data = Util.getContent("updater.dat", JSONObject.class);
+
+                System.out.println();
+                printTitle("DSLMODUPDATER AGENT AUTORUN");
+                /*
+                TODO: 아래거 전부 다~~
+                1. JSONObject data를 통해 기본 ICT 불러오기
+                1.1. 기본 ICT가 없다면? -> ICT리스트 불러와서 선택하라고 하기
+                1.2. 이 리스트마저도 없다면? -> 등록된 ICT가 없으므로, 자동 업데이트를 실행할 수 없습니다. 종료합니다.
+                2. 자동 업데이터가 기본 ICT(XXXX)로 검사를 시작할 것입니다. 다른 ICT로 검사하거나, 검사를 건너뛰실 경우 1초 이내에 ENTER를 눌러 주십시오....
+                2.1. 상세 :
+                    [INFO] 검사할 ICT서버를 선택하십시오. 검사를 건너뛰려면 입력란에 skip을 입력하고 <ENTER>를 누르십시오.
+                    1) DCS
+                    2) PLAYDSL
+                    3) ...
+                    4) ...
+                    ====== 메뉴를 선택해 주세요 ==================================
+                    skip
+
+                    2.1.1. skip -> [INFO] 모드 검사를 건너 뛰셨습니다. 자동 업데이터를 종료합니다.
+                    2.1.2. 번호선택 -> [INFO] 선택 ICT서버 : DCS
+                3. [INFO] 검사를 시작합니다.
+                4. ICT서버에 연결을 시도합니다... 완료
+                5. ICT서버에서 모드 리스트를 불러오는 중입니다... 완료
+                6. 모드의 적합성을 검사중입니다... 완료
+                6.1. 올바른가? -> Latest Version (25APR16.01) detected. 설치된 모드가 올바릅니다. 자동 업데이터를 종료합니다.
+                6.2. 올바르지않은가? -> 모드가 서버와 올바르지 않습니다.
+                     새로운 모드 다운로드를 시도하시겠습니까? [Y\N]
+                     6.2.1. Y -> TODO : 이거 만들기
+                            N -> 모드 다운로드를 취소하셨습니다. 자동 업데이터를 종료합니다.
+                 */
+
+                return;
+            }
+        } else if (first) {
+            printMessage("warn", "비초기화 상태가 감지되었습니다.");
+            if (waitInput("초기 설정을 하시려면 5초 이내에 ENTER를 눌러 주십시오...", 5000) == null) {
+                return;
+            }
         }
 
         /* File Validation
@@ -67,55 +112,19 @@ public class Main extends Util {
         - MENU : 설정 -
          1. 업데이터 초기화 (updater.dat 초기화)
          2. mods폴더 위치변경
+
+        << 2.0.0 업데이트 >>
+        메뉴 :
+            1. ICT서버 설정하기 (Autorun Agent 위함)
+            2. 모드 수동 적용 (이 Autorun Agent가 끝나지 않았음에도 마인크래프트가 실행되는 것을 확인함. 마인크래프트 실행이 모드 확인보다 먼저라면 에러가 나므로, 에러 발생시 이 수동적용 메뉴를 통해 직접 적용하라고 안내하여야 함.)
+            3. 설정
+            4. 업데이터 종료
          */
 
         printMessage("info", "Initializing...");
 
         String currentDir = System.getProperty("user.dir") + File.separator;
-
-        // instance
         File dataFile = new File(currentDir + "updater.dat");
-
-        // Register files and directories
-        fileList.add(new File(currentDir + "updater.dat"));
-        fileList.add(new File(currentDir + "temp"));
-
-        boolean first = false;
-        try {
-            // create temp folder
-            if (fileList.get(1).exists()) FileUtils.cleanDirectory(fileList.get(1));
-            else if (!fileList.get(1).mkdir()) throw new IOException();
-
-            for (File f : fileList) {
-                if (!f.exists() & f.getName().equalsIgnoreCase("updater.dat")) {
-                    first = true; // Updater.dat이 없는 경우
-                } else if (f.getName().equalsIgnoreCase("updater.dat")) {
-                    // Initialize
-                    if (f.length() == 0) {
-                        first = true;
-                        break;
-                    }
-
-                    try {
-                        FileReader reader = new FileReader(f);
-                        JSONObject obj = (JSONObject) parser.parse(reader);
-                        File modsFolder = new File(obj.get("path").toString());
-                        if (!modsFolder.exists()) throw new ParseException(0);
-                        else modsDir = modsFolder;
-                    } catch (ParseException e) {
-                        FileWriter writer = new FileWriter(dataFile);
-                        writer.write("");
-                        writer.flush();
-                        writer.close();
-                        first = true;
-                    }
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("업데이터 초기화에 실패했습니다.");
-            e.printStackTrace();
-            System.exit(-1);
-        }
 
         // Main Screen
         System.out.println();
@@ -152,20 +161,37 @@ public class Main extends Util {
             System.out.println();
 
             do {
-                String typedModsFolderPath = input("마인크래프트 'mods'폴더의 절대경로를 적어주세요");
-                File f = new File(typedModsFolderPath);
+                File f = new File(
+                        System.getProperty("user.home") +
+                        File.separator +
+                        "AppData" +
+                        File.separator +
+                        "Roaming" +
+                        File.separator +
+                        ".minecraft" +
+                        File.separator +
+                        "mods"
+                );
+                if (!ask("기본 경로 (" + f.toPath() + ") 를 찾았습니다. 자동으로 등록하시겠습니까?") || !f.exists()) {
+                    if (!f.exists()) printMessage("warn", "기본 경로 (" + ColorText.text(f.toPath().toString(), "blue", "none", false, false, false) + ") 를 찾을 수 없습니다. 수동으로 입력을 받아야 합니다.");
+                    String typedModsFolderPath = input("마인크래프트 'mods'폴더의 절대경로를 적어주세요");
+                    f = new File(typedModsFolderPath);
+                }
+
                 if (!f.exists() | f.isFile()) {
                     printMessage("error", "\n경로를 잘못 입력하셨습니다. 다시 시도해주세요.\n");
                     continue;
                 } else {
                     try {
-                        Map<String, String> mapObj = new HashMap<>();
-                        mapObj.put("path", typedModsFolderPath);
+                        Map<String, Object> mapObj = new HashMap<>();
+                        mapObj.put("path", f.toPath());
+                        mapObj.put("ICT", new JSONArray());
+                        mapObj.put("default", "");
 
                         JSONObject obj = new JSONObject(mapObj);
 
                         FileWriter writer = new FileWriter(dataFile);
-                        writer.write(obj.toJSONString());
+                        writer.write(obj.toString(4));
                         writer.flush();
 
                         modsDir = f;
@@ -176,7 +202,7 @@ public class Main extends Util {
                         break;
                     } catch (IOException e) {
                         printMessage("error", "예외가 발생했습니다 : " + e.getMessage());
-                        System.exit(-1);
+                        return;
                     }
                 }
             } while (true);
@@ -217,7 +243,7 @@ public class Main extends Util {
                 case "3" -> {
                     if (ask("업데이터를 종료하시겠습니까?")) {
                         printMessage("info", "모드 업데이터를 종료합니다.");
-                        System.exit(0);
+                        return;
                     } else continue;
                 }
 
@@ -232,13 +258,5 @@ public class Main extends Util {
 
     public static void clearConsole() {
         for (int i = 1; i <= 100; i++) System.out.println();
-    }
-
-    public static void printMessage(String type, String message) {
-        switch (type) {
-            case "info" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("INFO", "green", "none", true, false, false) + "] : " + message);
-            case "error" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("ERROR", "red", "none", true, false, false) + "] : " + message);
-            case "warn" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("WARN", "yellow", "none", true, false, false) + "] : " + message);
-        }
     }
 }

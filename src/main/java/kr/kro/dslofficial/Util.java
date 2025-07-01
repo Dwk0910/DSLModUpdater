@@ -1,12 +1,23 @@
 package kr.kro.dslofficial;
 
+import org.apache.commons.io.FileUtils;
+
+import org.json.JSONObject;
+import org.json.JSONArray;
+import org.json.simple.parser.ParseException;
+
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
@@ -24,6 +35,85 @@ public class Util {
         Scanner scan = new Scanner(System.in);
         System.out.println(ColorText.text(" " + message + " ".repeat(Main.width - (message.length() + 1)), "black", "white", true, false, false));
         return scan.nextLine();
+    }
+
+    public static File modsDir;
+    public static List<File> fileList = new ArrayList<>();
+    public static boolean initialize() {
+        String currentDir = System.getProperty("user.dir") + File.separator;
+
+        // instance
+        File dataFile = new File(currentDir + "updater.dat");
+
+        // Register files and directories
+        fileList.add(new File(currentDir + "updater.dat"));
+        fileList.add(new File(currentDir + "temp"));
+
+        boolean first = false;
+        try {
+            // create temp folder
+            if (fileList.get(1).exists()) FileUtils.cleanDirectory(fileList.get(1));
+            else if (!fileList.get(1).mkdir()) throw new IOException();
+
+            for (File f : fileList) {
+                if (!f.exists() & f.getName().equalsIgnoreCase("updater.dat")) {
+                    return true; // Updater.dat이 없는 경우
+                } else if (f.getName().equalsIgnoreCase("updater.dat")) {
+                    // Initialize
+                    try {
+                        JSONObject obj = new JSONObject(Files.readString(f.toPath()));
+                        File modsFolder = new File(obj.get("path").toString());
+                        if (!modsFolder.exists()) throw new ParseException(0);
+                        else modsDir = modsFolder;
+                    } catch (ParseException e) {
+                        FileWriter writer = new FileWriter(dataFile);
+                        writer.write("");
+                        writer.flush();
+                        writer.close();
+                        return true;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("업데이터 초기화에 실패했습니다.");
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        return false;
+    }
+
+    public static <T> T getContent(String filename, Class<T> targetClass) {
+        try {
+            for (File f : fileList) {
+                if (f.getName().equals(filename)) {
+                    Object result = switch (targetClass.getSimpleName()) {
+                        case "JSONObject" -> new JSONObject(Files.readString(f.toPath()));
+                        case "JSONArray" -> new JSONArray(Files.readString(f.toPath()));
+                        default -> throw new IllegalArgumentException("지원하지 않는 클래스입니다.");
+                    };
+
+                    if (!targetClass.isInstance(result)) {
+                        throw new Error("getContent(String, Class<T>); 인자 Class<T>에서 명시한 클래스와 파싱된 파일의 클래스가 상이합니다.");
+                    } else return targetClass.cast(result);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+
+        throw new IllegalArgumentException("파일을 찾을 수 없습니다");
+    }
+
+    public static <T> T parseStr(String content, Class<T> targetClass) {
+        Object result = switch (targetClass.getSimpleName()) {
+            case "JSONObject" -> new JSONObject(content);
+            case "JSONArray" -> new JSONArray(content);
+            default -> throw new IllegalArgumentException("지원하지 않는 클래스입니다.");
+        };
+
+        if (!targetClass.isInstance(result)) {
+            throw new Error("getContent(String, Class<T>); 인자 Class<T>에서 명시한 클래스와 파싱된 파일의 클래스가 상이합니다.");
+        } else return targetClass.cast(result);
     }
 
     public static void printTitle(String title) {
@@ -105,6 +195,44 @@ public class Util {
             System.exit(-1);
         }
 
+        return null;
+    }
+
+    public static void printMessage(String type, String message) {
+        switch (type) {
+            case "info" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("INFO", "green", "none", true, false, false) + "] : " + message);
+            case "error" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("ERROR", "red", "none", true, false, false) + "] : " + message);
+            case "warn" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("WARN", "yellow", "none", true, false, false) + "] : " + message);
+        }
+    }
+
+    public static volatile String message;
+    public static volatile String input = null;
+    public static volatile boolean typed = false;
+    public static String waitInput(String message_arg, int waitMilesec) {
+        message = (message_arg == null) ? "" : message_arg;
+
+        Scanner scan = new Scanner(System.in);
+        Thread inputThread = new Thread(() -> {
+            System.out.print(message);
+            input = scan.nextLine();
+            typed = true;
+        });
+
+        inputThread.setDaemon(true);
+        inputThread.start();
+
+        long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < waitMilesec) {
+            if (typed) break;
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                System.out.println(e);
+            }
+        }
+
+        if (input != null) return input;
         return null;
     }
 }
