@@ -2,9 +2,20 @@ package kr.kro.dslofficial.func;
 
 import kr.kro.dslofficial.ColorText;
 import kr.kro.dslofficial.Util;
+import kr.kro.dslofficial.obj.ServerResponse;
+import kr.kro.dslofficial.obj.enums.ConnectionStatus;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /*
 << 2.0.0 업데이트 >>
@@ -35,35 +46,313 @@ public class SetICT extends Util {
             if (ictList.isEmpty()) printMessage("info", "ICT서버 리스트가 비어 있습니다. 추가하시려면 입력란에 add를 입력하십시오.");
             else printMessage("info", "ICT서버를 추가하시려면 입력란에 add를 입력하십시오.");
 
-            int index = 1;
+            List<String> menuItem = new ArrayList<>();
             for (Object o : ictList) {
                 JSONObject obj = parseStr(o.toString(), JSONObject.class);
                 if (!isValidICTObject(obj)) {
                     printMessage("error", "updater.dat 파일이 손상되었습니다.");
                     System.exit(0);
                 } else {
-                    System.out.println(index + ") " + ColorText.text(obj.get("name").toString(), "blue", "none", false, false, false) + " - " + ColorText.text(obj.get("URL").toString(), "yellow", "none", false, false, false));
-                    index++;
+                    try {
+                        if (!parseStr(data.get("default").toString(), JSONObject.class).isNull("URL") && parseStr(data.get("default").toString(), JSONObject.class).get("URL").equals(parseStr(o.toString(), JSONObject.class).get("URL")))
+                            menuItem.add(ColorText.text(obj.get("name").toString(), "green", "none", false, false, false) + " - " + ColorText.text(obj.get("URL").toString(), "yellow", "none", false, false, false) + ColorText.text(" (자동검사 기본서버)", "b-yellow", "none", true, false, false));
+                        else
+                            menuItem.add(ColorText.text(obj.get("name").toString(), "green", "none", false, false, false) + " - " + ColorText.text(obj.get("URL").toString(), "yellow", "none", false, false, false));
+                    } catch (JSONException e) {
+                        printMessage("error", "updater.dat 파일이 손상되었습니다.");
+                        System.exit(0);
+                    }
                 }
             }
 
-            String input = input("관리할 서버의 번호를 입력하십시오. 또는 서버추가시, add를 입력해 주십시오. (뒤로가기: exit)");
-            if (input.equalsIgnoreCase("exit")) break;
+            System.out.println();
+            printMenu(menuItem);
+            System.out.println();
 
+            String input = input("관리할 서버의 번호를 입력하십시오. (서버추가: add, 뒤로가기: exit)");
+            if (input.equalsIgnoreCase("exit")) break;
             if (input.equalsIgnoreCase("add")) {
                 System.out.println();
                 printTitle("ICT서버 추가");
                 String url = input("추가할 ICT서버의 URL를 입력해 주세요. (뒤로가기: exit)");
                 if (url.equalsIgnoreCase("exit")) continue;
-                // TODO : ICT서버 URL확인 추가
-            } else {
+                if (!ask(ColorText.text(url, "blue", "none", true, false, false) + ColorText.text(" : 입력하신 URL이 맞습니까?", "yellow", "none", false , false, false))) continue;
+                printMessage("info", "URL등록을 시작합니다.");
+
+                if (alreadExists(ictList, new JSONObject().put("URL", url))) {
+                    printMessage("info", "이 URL은 이미 존재합니다.");
+                    pause(2000);
+                    continue;
+                }
+
+                printMessage("info", "URL 연결 상태를 확인중입니다.");
+
+                ServerResponse response = getResponse(url);
+                if (response.status == ConnectionStatus.INVALID_URL) {
+                    printMessage("error", "URL을 잘못 입력하셨습니다. ('https://' 등도 포함했는지 확인하십시오)");
+                    pause(2000);
+                    continue;
+                } else if (response.status == ConnectionStatus.CONNERR) {
+                    printMessage("error", "서버와의 연결에 실패했습니다.");
+                    pause(2000);
+                    continue;
+                }
+
+                // 연결성공
+                printMessage("info", "서버 연결에 성공했습니다. 내용을 불러오는 중입니다...");
+
+                JSONObject obj;
+                JSONArray mods;
                 try {
+                    obj = new JSONObject(response.response);
+                    if (obj.isNull("version") || obj.isNull("mods")) throw new JSONException("");
+                    else mods = new JSONArray(obj.get("mods").toString());
+                } catch (JSONException e) {
+                    printMessage("error", "올바른 ICT서버가 아닙니다.");
+                    pause(2000);
+                    continue;
+                }
+
+                if (!ask(ColorText.text("최신 버전 : ", "yellow", "none", false, false ,false) + ColorText.text(obj.get("version").toString(), "green", "none", true, false, false) + ColorText.text(", 모드 갯수 : ", "b-yellow", "none", false, false, false) + ColorText.text(mods.length() + "개", "blue", "none", true, false, false) + ColorText.text(" - 이 정보가 맞습니까?", "yellow", "none", true, false, false))) {
+                    printMessage("info", "ICT서버 추가가 취소되었습니다.");
+                    pause(2000);
+                    continue;
+                }
+
+                String typedName;
+                do {
+                     typedName = input("이 서버를 무슨 이름으로 저장하시겠습니까?");
+                    if (typedName == null) continue;
+                    else break;
+                } while (true);
+
+                ictList.put(new JSONObject().put("name", typedName).put("URL", url));
+                data.put("ICT", ictList);
+
+                try {
+                    File f = getContent("updater.dat", File.class);
+                    FileWriter writer = new FileWriter(f);
+                    writer.write(data.toString(4));
+                    writer.flush();
+                    writer.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                printMessage("info", typedName + " : ICT서버 추가가 완료되었습니다.");
+                pause(2000);
+                continue;
+            } else {
+                do {
+                    // 최신화
+                    initialize();
+                    data = getContent("updater.dat", JSONObject.class);
+                    ictList = parseStr(data.get("ICT").toString(), JSONArray.class);
+
                     int selected = Integer.parseInt(input);
                     if (ictList.isNull(selected - 1)) throw new NumberFormatException();
-                } catch (NumberFormatException e) {
-                    printMessage("error", "잘못된 값을 입력하셨습니다.");
-                }
+
+                    clearConsole();
+
+                    JSONObject ict = parseStr(ictList.get(selected - 1).toString(), JSONObject.class);
+                    boolean isDefault = !parseStr(data.get("default").toString(), JSONObject.class).isNull("URL") && parseStr(data.get("default").toString(), JSONObject.class).get("URL").equals(ict.get("URL"));
+
+                    printTitle("ICT서버 관리");
+                    System.out.println();
+                    System.out.println(" [ " + ColorText.text(ict.get("name").toString(), "b-yellow", "none", true, false, true) + " ] ");
+                    System.out.println(ColorText.text(ict.get("URL").toString(), "blue", "none", false, false, false));
+                    if (isDefault) System.out.println(ColorText.text(" - 자동검사 기본서버 -", "b-yellow", "none", true, false, false));
+                    System.out.println();
+                    System.out.println(ColorText.text("· MENU", "blue", "none", true, false, false));
+                    System.out.println();
+
+                    List<String> menu = Arrays.asList("이름 변경", "URL 변경", "기본 ICT 서버로 만들기", "검사", "삭제", "뒤로가기");
+                    printMenu(menu);
+                    System.out.println();
+
+                    String ictServMenuSelect = input("메뉴를 선택해 주십시오");
+                    if (ictServMenuSelect.equals("6")) break;
+                    else {
+                        try {
+                            switch (Integer.parseInt(ictServMenuSelect)) {
+                                case 1 -> {
+                                    // 이름변경
+                                    String typedName;
+                                    do {
+                                        typedName = input("바꿀 이름을 입력하여 주십시오. (취소: exit)");
+                                        if (typedName == null) continue;
+                                        else break;
+                                    } while (true);
+                                    if (typedName.equals("exit")) continue;
+
+                                    changeFromICT(data, ict.get("name").toString(), "name", typedName);
+                                    printMessage("info", "이름 변경이 완료되었습니다.");
+                                    // 파일을 수정했으므로 다시 불러와야함
+                                    initialize();
+                                    pause(2000);
+                                    continue;
+                                }
+
+                                case 2 -> {
+                                    // URL변경
+                                    String typedURL;
+                                    do {
+                                        typedURL = input("바꿀 URL를 입력하여 주십시오. (취소: exit)");
+                                        if (typedURL == null) continue;
+                                        else break;
+                                    } while (true);
+                                    if (typedURL.equals("exit")) continue;
+                                    if (!ask(ColorText.text(typedURL, "blue", "none", true, false, false) + ColorText.text(" : 입력하신 URL이 맞습니까?", "yellow", "none", false, false, false)))
+                                        continue;
+                                    printMessage("info", "URL등록을 시작합니다.");
+
+                                    if (alreadExists(ictList, new JSONObject().put("URL", typedURL))) {
+                                        printMessage("info", "이 URL은 이미 존재합니다.");
+                                        pause(2000);
+                                        continue;
+                                    }
+
+                                    printMessage("info", "URL 연결 상태를 확인중입니다.");
+
+                                    ServerResponse response = getResponse(typedURL);
+                                    if (response.status == ConnectionStatus.INVALID_URL) {
+                                        printMessage("error", "URL을 잘못 입력하셨습니다. ('https://' 등도 포함했는지 확인하십시오)");
+                                        pause(2000);
+                                        continue;
+                                    } else if (response.status == ConnectionStatus.CONNERR) {
+                                        printMessage("error", "서버와의 연결에 실패했습니다.");
+                                        pause(2000);
+                                        continue;
+                                    }
+
+                                    // 연결성공
+                                    printMessage("info", "서버 연결에 성공했습니다. 내용을 불러오는 중입니다...");
+
+                                    JSONObject obj;
+                                    JSONArray mods;
+                                    try {
+                                        obj = new JSONObject(response.response);
+                                        if (obj.isNull("version") || obj.isNull("mods"))
+                                            throw new JSONException("");
+                                        else mods = new JSONArray(obj.get("mods").toString());
+                                    } catch (JSONException e) {
+                                        printMessage("error", "올바른 ICT서버가 아닙니다.");
+                                        pause(2000);
+                                        continue;
+                                    }
+
+                                    if (!ask(ColorText.text("최신 버전 : ", "yellow", "none", false, false, false) + ColorText.text(obj.get("version").toString(), "green", "none", true, false, false) + ColorText.text(", 모드 갯수 : ", "b-yellow", "none", false, false, false) + ColorText.text(mods.length() + "개", "blue", "none", true, false, false) + ColorText.text(" - 이 정보가 맞습니까?", "yellow", "none", true, false, false))) {
+                                        printMessage("info", "ICT서버 추가가 취소되었습니다.");
+                                        pause(2000);
+                                        continue;
+                                    }
+
+                                    changeFromICT(data, ict.get("name").toString(), "URL", typedURL);
+                                    printMessage("info", "URL 변경이 완료되었습니다.");
+
+                                    // 파일을 수정했으므로 다시 불러와야함
+                                    initialize();
+                                    pause(2000);
+                                    continue;
+                                }
+
+                                case 3 -> {
+                                    // 기본 ICT로 만들기
+                                    if (!data.isNull("default") && !parseStr(data.get("default").toString(), JSONObject.class).isNull("URL") && parseStr(data.get("default").toString(), JSONObject.class).get("URL").equals(ict.get("URL"))) {
+                                        printMessage("error", "이 서버는 이미 자동검사 기본 서버로 등록되어 있습니다.");
+                                        pause(2000);
+                                        continue;
+                                    }
+
+                                    try {
+                                        if (ask("이 서버를 자동검사 기본 서버로 등록하시겠습니까?")) {
+                                            data.put("default", new JSONObject().put("name", ict.get("name")).put("URL", ict.get("URL")));
+                                            File f = getContent("updater.dat", File.class);
+                                            FileWriter fw = new FileWriter(f);
+                                            fw.write(data.toString(4));
+                                            fw.flush();
+                                            fw.close();
+
+                                            printMessage("info", "기본 서버로 등록되었습니다.");
+                                            pause(2000);
+                                        }
+                                    } catch (IOException e) {
+                                        printMessage("error", "updater.dat이 손상되었습니다.");
+                                        pause(2000);
+                                        continue;
+                                    }
+                                }
+
+                                case 4 -> {
+                                    // TODO: 검사
+                                }
+
+                                case 5 -> {
+                                    // TODO: 삭제
+                                }
+
+                                default -> {
+                                    printMessage("error", "잘못된 값을 입력하셨습니다.");
+                                    pause(2000);
+                                    continue;
+                                }
+                            }
+                        } catch (NumberFormatException e) {
+                            printMessage("error", "잘못된 값이 입력되었습니다.");
+                            pause(2000);
+                            continue;
+                        }
+                    }
+                } while (true);
             }
         } while (true);
+    }
+
+    private static void changeFromICT(JSONObject updaterdata, String targetICTName, String targetKey, String targetValue) {
+        try {
+            JSONArray ictList = new JSONArray(updaterdata.get("ICT").toString());
+            for (Object o : ictList) {
+                JSONObject ict = new JSONObject(o.toString());
+                if (ict.get("name").equals(targetICTName)) {
+                    if (ict.isNull(targetKey)) throw new NumberFormatException();
+                    ict.put(targetKey, targetValue);
+                    // IctList에서 원래 ict 지우고
+                    ictList.remove(findIndex(ictList, ict));
+                    // 이름/URL 바꾼 새로운 ict 넣음
+                    ictList.put(ict);
+                    updaterdata.put("ICT", ictList);
+
+                    File f = getContent("updater.dat", File.class);
+                    FileWriter fw = new FileWriter(f);
+                    fw.write(updaterdata.toString(4));
+                    fw.flush();
+                    fw.close();
+                    return;
+                }
+            }
+        } catch (NumberFormatException | JSONException e) {
+            e.printStackTrace();
+            printMessage("error", "ICT서버 리스트가 손상되었습니다.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean alreadExists(JSONArray ictArray, JSONObject object) {
+        for (Object o : ictArray) {
+            JSONObject obj = new JSONObject(o.toString());
+            if (object.get("URL").equals(obj.get("URL"))) return true;
+        }
+        return false;
+    }
+
+    public static int findIndex(JSONArray ictArray, JSONObject object) {
+        int index = 0;
+        for (Object o : ictArray) {
+            JSONObject obj = new JSONObject(o.toString());
+            if (obj.get("URL").equals(object.get("URL"))) return index;
+            index++;
+        }
+        return -1;
     }
 }

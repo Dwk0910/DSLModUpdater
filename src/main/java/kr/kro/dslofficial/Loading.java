@@ -29,6 +29,6 @@ public class Loading implements Runnable {
         }
 
         System.out.print(ColorText.text(" 완료\n", "green", "none", true, false, false));
-        Util.pause(1000);
+        Util.pause(2000);
     }
 }

@@ -1,5 +1,11 @@
 {
     "path": "C:\\Users\\hyang\\AppData\\Roaming\\.minecraft\\mods",
-    "default": {},
-    "ICT": []
+    "default": {
+        "name": "DCS",
+        "URL": "http://mods.dslofficial.kro.kr"
+    },
+    "ICT": [{
+        "name": "DCS",
+        "URL": "http://mods.dslofficial.kro.kr"
+    }]
 }

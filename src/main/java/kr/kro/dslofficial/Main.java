@@ -11,11 +11,7 @@ import org.json.JSONObject;
 import java.io.*;
 import java.net.*;
 
-import java.util.Scanner;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 public class Main extends Util {
     public static final String version = "v1.1.0";
@@ -264,7 +260,7 @@ public class Main extends Util {
 
                 default -> {
                     printMessage("error", "잘못 입력하셨습니다. 메인 화면으로 돌아갑니다...");
-                    Util.pause(1000);
+                    Util.pause(2000);
                     continue;
                 }
             }

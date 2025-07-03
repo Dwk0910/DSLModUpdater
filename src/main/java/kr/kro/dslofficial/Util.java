@@ -1,5 +1,8 @@
 package kr.kro.dslofficial;
 
+import kr.kro.dslofficial.obj.ServerResponse;
+import kr.kro.dslofficial.obj.enums.ConnectionStatus;
+
 import org.apache.commons.io.FileUtils;
 
 import org.json.JSONObject;
@@ -11,6 +14,10 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -27,7 +34,7 @@ import java.util.zip.ZipInputStream;
 public class Util {
     public static boolean ask(String message) {
         Scanner scan = new Scanner(System.in);
-        System.out.print(ColorText.text(message, "yellow", "none", true, false, false) + " " + ColorText.text("[Yes/No] ", "white", "none", false, false, false) + " : ");
+        System.out.print(ColorText.text(message, "yellow", "none", true, false, false) + " " + ColorText.text("[" + ColorText.text("Y", "white", "none", true, false, true) + "es/" + ColorText.text("N", "white", "none", true, false, true) + "o] ", "white", "none", false, false, false) + " : ");
         String input = scan.nextLine();
         return input.equalsIgnoreCase("Y") || input.equalsIgnoreCase("Yes");
     }
@@ -88,6 +95,7 @@ public class Util {
             for (File f : fileList) {
                 if (f.getName().equals(filename)) {
                     Object result = switch (targetClass.getSimpleName()) {
+                        case "File" -> f;
                         case "JSONObject" -> new JSONObject(Files.readString(f.toPath()));
                         case "JSONArray" -> new JSONArray(Files.readString(f.toPath()));
                         default -> throw new IllegalArgumentException("지원하지 않는 클래스입니다.");
@@ -259,6 +267,20 @@ public class Util {
         System.out.println();
         if (input != null) return input;
         return null;
+    }
+
+    public static ServerResponse getResponse(String urlstr) {
+        try {
+            URL url = new URL(urlstr);
+            url.openConnection();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // Connection failed
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) return new ServerResponse(null, ConnectionStatus.CONNERR);
+            return new ServerResponse(new String(connection.getInputStream().readAllBytes(), StandardCharsets.UTF_8), ConnectionStatus.OK);
+        } catch (IOException e) {
+            return new ServerResponse(null, ConnectionStatus.INVALID_URL);
+        }
     }
 
     public static boolean isValidICTObject(org.json.JSONObject obj) {

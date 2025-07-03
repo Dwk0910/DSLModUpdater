@@ -13,10 +13,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Options extends Util {
     public static void run() {
@@ -25,10 +22,7 @@ public class Options extends Util {
             Main.printTitle("모드 업데이터 설정");
             System.out.println();
 
-            List<String> menu = new ArrayList<>();
-            menu.add("업데이터 초기화");
-            menu.add("mods폴더 위치 변경");
-            menu.add("돌아가기");
+            List<String> menu = Arrays.asList("업데이터 초기화", "mods폴더 위치 변경", "기본 ICT서버 비우기", "돌아가기");
 
             Main.printMenu(menu);
             System.out.println();
@@ -51,7 +45,7 @@ public class Options extends Util {
                     }
 
                     Main.printMessage("info", "초기화가 완료되었습니다.");
-                    Util.pause(1000);
+                    Util.pause(2000);
                     System.exit(0);
                 }
 
@@ -102,7 +96,7 @@ public class Options extends Util {
                                 Main.modsDir = f;
 
                                 Main.printMessage("info", "mods폴더 변경이 완료되었습니다.");
-                                Util.pause(1000);
+                                Util.pause(2000);
                                 break;
                             } catch (IOException | ParseException e) {
                                 e.printStackTrace();
@@ -113,12 +107,29 @@ public class Options extends Util {
                 }
 
                 case "3" -> {
+                    System.out.println();
+                    if (ask("기본 ICT서버를 비워두시겠습니까? (자동검사 시 ICT서버를 직접 선택하셔야 합니다.)")) {
+                        try {
+                            org.json.JSONObject object = getContent("updater.dat", org.json.JSONObject.class);
+                            File f = getContent("updater.dat", File.class);
+                            FileWriter writer = new FileWriter(f);
+                            object.put("default", new JSONObject());
+                            writer.write(object.toString(4));
+                            writer.flush();
+                            writer.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                case "4" -> {
                     return;
                 }
 
                 default -> {
                     Main.printMessage("error", "잘못 입력하셨습니다. 다시 돌아갑니다...");
-                    Util.pause(1000);
+                    Util.pause(2000);
                 }
             }
         } while (true);
