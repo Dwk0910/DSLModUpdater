@@ -2,7 +2,9 @@ package kr.kro.dslofficial;
 
 import kr.kro.dslofficial.func.ApplyMods;
 import kr.kro.dslofficial.func.Options;
+import kr.kro.dslofficial.func.Autorun;
 
+import kr.kro.dslofficial.func.SetICT;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -51,49 +53,63 @@ public class Main extends Util {
             return;
         }
 
+        // 개발자 모드
+        if (args.length != 0 && args[0].equals("--DEV")) {
+            String pwd = scan.nextLine();
+            if (!pwd.equals("dongwan0910")) return;
+
+            do {
+                List<String> menu = new ArrayList<>();
+                menu.add("File -> Hash 변환");
+                menu.add("ModList확인");
+
+                printMenu(menu);
+                String input = input("메뉴 선택 (q: exit)");
+
+                if (input.equals("q")) break;
+
+                switch (input) {
+                    case "1" -> {
+                        do {
+                            String path = input("파일 경로 입력");
+                            File f = new File(path);
+                            if (!f.exists()) {
+                                printMessage("error", "파일 경로 알 수 없음");
+                                continue;
+                            }
+
+                            System.out.println(hashFile(f));
+                            break;
+                        } while (true);
+                    }
+
+                    case "2" -> {
+                        // TODO: 파일리스트 출력 시스템
+                    }
+
+                    default -> {
+                        printMessage("error", "알 수 없는 명령");
+                        continue;
+                    }
+                }
+            } while (true);
+            System.exit(0);
+        }
+
         boolean first = initialize();
         // args.length가 0이 아니고 (1 이상) args[0]이 --ByAgent이며, 첫실행(미초기화상태)이 아닐 경우
-        if (args.length != 0 && args[0].equals("--ByAgent") && !first) {
-            if (waitInput("Agent 모드로 실행합니다. 기본 모드로 실행하시려면 3초 이내에 ENTER를 눌러 주십시오...", 3000) == null) {
-                JSONObject data = Util.getContent("updater.dat", JSONObject.class);
-
-                System.out.println();
-                printTitle("DSLMODUPDATER AGENT AUTORUN");
-                /*
-                TODO: 아래거 전부 다~~
-                1. JSONObject data를 통해 기본 ICT 불러오기
-                1.1. 기본 ICT가 없다면? -> ICT리스트 불러와서 선택하라고 하기
-                1.2. 이 리스트마저도 없다면? -> 등록된 ICT가 없으므로, 자동 업데이트를 실행할 수 없습니다. 종료합니다.
-                2. 자동 업데이터가 기본 ICT(XXXX)로 검사를 시작할 것입니다. 다른 ICT로 검사하거나, 검사를 건너뛰실 경우 1초 이내에 ENTER를 눌러 주십시오....
-                2.1. 상세 :
-                    [INFO] 검사할 ICT서버를 선택하십시오. 검사를 건너뛰려면 입력란에 skip을 입력하고 <ENTER>를 누르십시오.
-                    1) DCS
-                    2) PLAYDSL
-                    3) ...
-                    4) ...
-                    ====== 메뉴를 선택해 주세요 ==================================
-                    skip
-
-                    2.1.1. skip -> [INFO] 모드 검사를 건너 뛰셨습니다. 자동 업데이터를 종료합니다.
-                    2.1.2. 번호선택 -> [INFO] 선택 ICT서버 : DCS
-                3. [INFO] 검사를 시작합니다.
-                4. ICT서버에 연결을 시도합니다... 완료
-                5. ICT서버에서 모드 리스트를 불러오는 중입니다... 완료
-                6. 모드의 적합성을 검사중입니다... 완료
-                6.1. 올바른가? -> Latest Version (25APR16.01) detected. 설치된 모드가 올바릅니다. 자동 업데이터를 종료합니다.
-                6.2. 올바르지않은가? -> 모드가 서버와 올바르지 않습니다.
-                     새로운 모드 다운로드를 시도하시겠습니까? [Y\N]
-                     6.2.1. Y -> TODO : 이거 만들기
-                            N -> 모드 다운로드를 취소하셨습니다. 자동 업데이터를 종료합니다.
-                 */
-
-                return;
+        boolean isAgentMode = args.length != 0 && args[0].equals("--ByAgent");
+        if (isAgentMode && !first) {
+            new Autorun();
+            return;
+        } else if (isAgentMode) {
+            try {
+                printMessage("error", "자동 업데이트는 초기설정 이후 사용 가능합니다.");
+                Thread.sleep(3000);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } else if (first) {
-            printMessage("warn", "비초기화 상태가 감지되었습니다.");
-            if (waitInput("초기 설정을 하시려면 5초 이내에 ENTER를 눌러 주십시오...", 5000) == null) {
-                return;
-            }
+            return;
         }
 
         /* File Validation
@@ -112,13 +128,6 @@ public class Main extends Util {
         - MENU : 설정 -
          1. 업데이터 초기화 (updater.dat 초기화)
          2. mods폴더 위치변경
-
-        << 2.0.0 업데이트 >>
-        메뉴 :
-            1. ICT서버 설정하기 (Autorun Agent 위함)
-            2. 모드 수동 적용 (이 Autorun Agent가 끝나지 않았음에도 마인크래프트가 실행되는 것을 확인함. 마인크래프트 실행이 모드 확인보다 먼저라면 에러가 나므로, 에러 발생시 이 수동적용 메뉴를 통해 직접 적용하라고 안내하여야 함.)
-            3. 설정
-            4. 업데이터 종료
          */
 
         printMessage("info", "Initializing...");
@@ -178,7 +187,7 @@ public class Main extends Util {
                     f = new File(typedModsFolderPath);
                 }
 
-                if (!f.exists() | f.isFile()) {
+                if (!f.exists() || f.isFile()) {
                     printMessage("error", "\n경로를 잘못 입력하셨습니다. 다시 시도해주세요.\n");
                     continue;
                 } else {
@@ -186,7 +195,7 @@ public class Main extends Util {
                         Map<String, Object> mapObj = new HashMap<>();
                         mapObj.put("path", f.toPath());
                         mapObj.put("ICT", new JSONArray());
-                        mapObj.put("default", "");
+                        mapObj.put("default", new JSONObject());
 
                         JSONObject obj = new JSONObject(mapObj);
 
@@ -220,7 +229,8 @@ public class Main extends Util {
             System.out.println();
 
             List<String> menu = new ArrayList<>();
-            menu.add(ColorText.text("모드 적용하러 가기!", "white", "none", true, false, false));
+            menu.add(ColorText.text("ICT서버 설정", "white", "none", true, false, false));
+            menu.add("수동 모드 적용하기");
             menu.add("설정");
             menu.add("업데이터 종료");
 
@@ -231,16 +241,21 @@ public class Main extends Util {
 
             switch (typed_str) {
                 case "1" -> {
-                    ApplyMods.run();
+                    SetICT.run();
                     continue;
                 }
 
                 case "2" -> {
-                    Options.run();
+                    ApplyMods.run();
                     continue;
                 }
 
                 case "3" -> {
+                    Options.run();
+                    continue;
+                }
+
+                case "4" -> {
                     if (ask("업데이터를 종료하시겠습니까?")) {
                         printMessage("info", "모드 업데이터를 종료합니다.");
                         return;

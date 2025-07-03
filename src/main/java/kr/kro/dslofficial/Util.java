@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.simple.parser.ParseException;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -198,6 +199,29 @@ public class Util {
         return null;
     }
 
+    public static String hashFile(File file) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            FileInputStream fis = new FileInputStream(file);
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                md.update(buffer, 0, bytesRead);
+            }
+            fis.close();
+
+            StringBuilder builder = new StringBuilder();
+            for (byte b : md.digest()) {
+                builder.append(String.format("%02x", b));
+            }
+
+            return builder.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static void printMessage(String type, String message) {
         switch (type) {
             case "info" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("INFO", "green", "none", true, false, false) + "] : " + message);
@@ -232,7 +256,12 @@ public class Util {
             }
         }
 
+        System.out.println();
         if (input != null) return input;
         return null;
+    }
+
+    public static boolean isValidICTObject(org.json.JSONObject obj) {
+        return !obj.isNull("name") || !obj.isNull("URL");
     }
 }
