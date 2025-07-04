@@ -19,17 +19,12 @@ public class Options extends Util {
     public static void run() {
         do {
             clearConsole();
-            Main.printTitle("모드 업데이터 설정");
             System.out.println();
 
             List<String> menu = Arrays.asList("업데이터 초기화", "mods폴더 위치 변경", "기본 ICT서버 비우기", "돌아가기");
 
-            Main.printMenu(menu);
-            System.out.println();
-            String typed_str = input("선택하실 메뉴 번호를 입력해 주세요");
-
-            switch (typed_str) {
-                case "1" -> {
+            switch (printMenu(menu, "모드 업데이터 설정") + 1) {
+                case 1 -> {
                     System.out.println();
                     if (!ask("정말 초기화 하시겠습니까? " + ColorText.text("이 작업은 되돌릴 수 없습니다!", "red", "none", true, false, false))) break;
                     Main.printMessage("info", "Request processing started.");
@@ -49,7 +44,7 @@ public class Options extends Util {
                     System.exit(0);
                 }
 
-                case "2" -> {
+                case 2 -> {
                     System.out.println();
                     System.out.println(ColorText.text("==================== [ 절대경로 찾는법 ] ====================", "yellow", "none", true, false, false));
                     System.out.println("1. Win + R 단축키를 누른다.");
@@ -106,7 +101,7 @@ public class Options extends Util {
                     } while (true);
                 }
 
-                case "3" -> {
+                case 3 -> {
                     System.out.println();
                     if (ask("기본 ICT서버를 비워두시겠습니까? (자동검사 시 ICT서버를 직접 선택하셔야 합니다.)")) {
                         try {
@@ -123,7 +118,7 @@ public class Options extends Util {
                     }
                 }
 
-                case "4" -> {
+                case 4 -> {
                     return;
                 }
 

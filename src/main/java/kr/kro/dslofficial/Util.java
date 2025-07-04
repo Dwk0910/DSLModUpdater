@@ -5,9 +5,10 @@ import kr.kro.dslofficial.obj.enums.ConnectionStatus;
 
 import org.apache.commons.io.FileUtils;
 
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
 import org.json.JSONObject;
 import org.json.JSONArray;
-import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +16,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.nio.charset.StandardCharsets;
@@ -27,22 +29,22 @@ import java.security.NoSuchAlgorithmException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
+import java.util.concurrent.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class Util {
     public static boolean ask(String message) {
-        Scanner scan = new Scanner(System.in);
         System.out.print(ColorText.text(message, "yellow", "none", true, false, false) + " " + ColorText.text("[" + ColorText.text("Y", "white", "none", true, false, true) + "es/" + ColorText.text("N", "white", "none", true, false, true) + "o] ", "white", "none", false, false, false) + " : ");
-        String input = scan.nextLine();
+        LineReader reader = LineReaderBuilder.builder().terminal(Main.t).build();
+        String input = reader.readLine();
         return input.equalsIgnoreCase("Y") || input.equalsIgnoreCase("Yes");
     }
 
     public static String input(String message) {
-        Scanner scan = new Scanner(System.in);
         System.out.println(ColorText.text(" " + message + " ".repeat(Main.width - (message.length() + 1)), "black", "white", true, false, false));
-        return scan.nextLine();
+        LineReader reader = LineReaderBuilder.builder().terminal(Main.t).build();
+        return reader.readLine();
     }
 
     public static File modsDir;
@@ -71,9 +73,9 @@ public class Util {
                     try {
                         JSONObject obj = new JSONObject(Files.readString(f.toPath()));
                         File modsFolder = new File(obj.get("path").toString());
-                        if (!modsFolder.exists()) throw new ParseException(0);
+                        if (!modsFolder.exists()) throw new Exception();
                         else modsDir = modsFolder;
-                    } catch (ParseException e) {
+                    } catch (Exception e) {
                         FileWriter writer = new FileWriter(dataFile);
                         writer.write("");
                         writer.flush();
@@ -128,21 +130,56 @@ public class Util {
     public static void printTitle(String title) {
         // ===============[ TITLE ]===============
         //                ^^     ^^
-        System.out.println(ColorText.text("=", "yellow", "none", false, false, false).repeat((Main.width - (title.length() + 4)) / 2) + " [ " + title + " ] " + ColorText.text("=", "yellow", "none", false, false, false).repeat((Main.width - (title.length() + 4)) / 2));
+        Main.tw.println(ColorText.text("=", "yellow", "none", false, false, false).repeat((Main.width - (title.length() + 4)) / 2) + " [ " + title + " ] " + ColorText.text("=", "yellow", "none", false, false, false).repeat((Main.width - (title.length() + 4)) / 2));
     }
 
-    public static void printMenu(List<String> items) {
+    public static int printMenu(List<String> items, String title, String... anotherOption) {
+        int selectedIdx = 0;
+        if (items.isEmpty()) return selectedIdx;
+
+        try {
+            do {
+                clearConsole();
+
+                // Draw Menu
+                Main.tw.println("\u001B[H");
+
+                printTitle(title);
+                Main.tw.println();
+                if (anotherOption.length >= 1) Main.tw.println(anotherOption[0]);
+
+                Main.tw.println(ColorText.text(" · MENU", "blue", "none", true, false, false));
+                Main.tw.println();
+                for (int i = 0; i < items.size(); i++) {
+                    if (i == selectedIdx) Main.tw.println(ColorText.text("> " + items.get(i), (anotherOption.length >= 2) ? anotherOption[1] : "green", "none", true, false, false));
+                    else Main.t.writer().println("  " + ColorText.text(items.get(i), "gray", "none", false, false, false));
+                }
+                Main.tw.println();
+                Main.t.flush();
+
+                int key = Main.t.reader().read();
+
+                if (key == 65 && selectedIdx - 1 >= 0) selectedIdx--;
+                else if (key == 66 && selectedIdx + 1 < items.size()) selectedIdx++;
+                else if (key == 10 || key == 13) return selectedIdx;
+            } while (true);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    public static void printArrayMenu(List<String> items) {
         int i = 1;
         for (String item : items) {
-            System.out.println(ColorText.text("[" + i + "] ", "green", "none", true, false, false) + item);
+            Main.tw.println(ColorText.text(" [" + i + "] ", "green", "none", true, false, false) + " " + ColorText.text(item, "white", "none", false, false, false));
             i++;
         }
     }
 
     public static void clearConsole() {
-        for (int i = 0; i < 100; i++) {
-            System.out.println();
-        }
+        Main.t.writer().print("\u001B[H\u001B[2J");
+        Main.t.flush();
     }
 
     public static void pause(int milisec) {
@@ -232,9 +269,9 @@ public class Util {
 
     public static void printMessage(String type, String message) {
         switch (type) {
-            case "info" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("INFO", "green", "none", true, false, false) + "] : " + message);
-            case "error" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("ERROR", "red", "none", true, false, false) + "] : " + message);
-            case "warn" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("WARN", "yellow", "none", true, false, false) + "] : " + message);
+            case "info" -> Main.tw.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("INFO", "green", "none", true, false, false) + "] : " + message);
+            case "error" -> Main.tw.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("ERROR", "red", "none", true, false, false) + "] : " + message);
+            case "warn" -> Main.tw.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("WARN", "yellow", "none", true, false, false) + "] : " + message);
         }
     }
 
@@ -242,31 +279,23 @@ public class Util {
     public static volatile String input = null;
     public static volatile boolean typed = false;
     public static String waitInput(String message_arg, int waitMilesec) {
-        message = (message_arg == null) ? "" : message_arg;
+        Main.tw.print(message_arg);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        Scanner scan = new Scanner(System.in);
-        Thread inputThread = new Thread(() -> {
-            System.out.print(message);
-            input = scan.nextLine();
-            typed = true;
-        });
-
-        inputThread.setDaemon(true);
-        inputThread.start();
-
-        long startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() - startTime < waitMilesec) {
-            if (typed) break;
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                System.out.println(e);
-            }
+        try {
+            Future<String> future = executor.submit(() -> Main.reader.readLine());
+            Main.tw.println();
+            future.get(waitMilesec, TimeUnit.MILLISECONDS);
+            executor.shutdownNow();
+            return "";
+        } catch (TimeoutException e) {
+            executor.shutdownNow();
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            executor.shutdownNow();
+            return null;
         }
-
-        System.out.println();
-        if (input != null) return input;
-        return null;
     }
 
     public static ServerResponse getResponse(String urlstr) {
@@ -274,12 +303,16 @@ public class Util {
             URL url = new URL(urlstr);
             url.openConnection();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(100000);
+            connection.setReadTimeout(100000);
 
             // Connection failed
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) return new ServerResponse(null, ConnectionStatus.CONNERR);
             return new ServerResponse(new String(connection.getInputStream().readAllBytes(), StandardCharsets.UTF_8), ConnectionStatus.OK);
-        } catch (IOException e) {
+        } catch (MalformedURLException e) {
             return new ServerResponse(null, ConnectionStatus.INVALID_URL);
+        } catch (IOException e) {
+            return new ServerResponse(null, ConnectionStatus.CONNERR);
         }
     }
 

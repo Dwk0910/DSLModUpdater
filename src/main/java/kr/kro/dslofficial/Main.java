@@ -3,10 +3,16 @@ package kr.kro.dslofficial;
 import kr.kro.dslofficial.func.ApplyMods;
 import kr.kro.dslofficial.func.Options;
 import kr.kro.dslofficial.func.Autorun;
-
 import kr.kro.dslofficial.func.SetICT;
+
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 
 import java.io.*;
 import java.net.*;
@@ -16,8 +22,23 @@ import java.util.*;
 public class Main extends Util {
     public static final String version = "v1.1.0";
     public static final int width = 80;
-    public static Scanner scan = new Scanner(System.in);
+    public static Terminal t;
+    public static PrintWriter tw;
+    public static LineReader reader;
     public static void main(String[] args) throws URISyntaxException {
+        try {
+            t = TerminalBuilder.builder()
+                    .system(true)
+                    .jna(true)
+                    .jansi(true)
+                    .build();
+            tw = t.writer();
+            reader = LineReaderBuilder.builder().terminal(Main.t).build();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
         clearConsole();
         printMessage("info", "DSL모드 업데이터입니다. 환영합니다. [ " + version + " ]");
         printMessage("info", "버전을 확인중입니다. 잠시만 기다려 주십시오...");
@@ -51,7 +72,7 @@ public class Main extends Util {
 
         // 개발자 모드
         if (args.length != 0 && args[0].equals("--DEV")) {
-            String pwd = scan.nextLine();
+            String pwd = reader.readLine();
             if (!pwd.equals("dongwan0910")) return;
 
             do {
@@ -59,7 +80,7 @@ public class Main extends Util {
                 menu.add("File -> Hash 변환");
                 menu.add("ModList확인");
 
-                printMenu(menu);
+                printMenu(menu, "DEV MODE");
                 String input = input("메뉴 선택 (q: exit)");
 
                 if (input.equals("q")) break;
@@ -146,7 +167,15 @@ public class Main extends Util {
         System.out.println(ColorText.text("- 이 프로그램을 사전 허가 없이 수정하지 않는다.", "yellow", "none", false, false, false));
         System.out.println(ColorText.text("Copyright 2024-2025. DSL All rights reserved.", "red", "none", true, false, false));
         System.out.println("\n" + ColorText.text("[ 프로그램을 사용하시며 생긴 버그의 제보는 개발자 @dongwan0910, @neatore DM으로 부탁드립니다. 감사합니다! ]", "green", "none", true, false, false));
-        input("ENTER키를 눌러 프로그램을 시작합니다. Ctrl + C를 누르시면 프로그램을 종료시키실 수 있습니다.");
+        System.out.println();
+        System.out.println(ColorText.text("모드업데이터 내 모든 메뉴는 방향키 + ENTER로 조작할 수 있습니다.", "b-yellow", "none", true, false, true));
+        System.out.println();
+        try {
+            input("ENTER키를 눌러 프로그램을 시작합니다. Ctrl + C를 누르시면 프로그램을 종료시키실 수 있습니다.");
+        } catch (UserInterruptException e) {
+            printMessage("info", "모드 업데이터를 종료합니다.");
+            System.exit(0);
+        }
 
         if (first) {
             clearConsole();
@@ -215,7 +244,6 @@ public class Main extends Util {
 
         do {
             clearConsole();
-            printTitle("DSL 모드 업데이트 관리자");
             System.out.println();
             System.out.println("Version " + ColorText.text(version, "blue", "none", true, false, false));
             System.out.println(ColorText.text("Copyright 2024-2025. DSL All rights reserved.\n", "gray", "none", false, false, false));
@@ -224,39 +252,31 @@ public class Main extends Util {
             System.out.println(ColorText.text("· MENU", "blue", "none", true, false, false));
             System.out.println();
 
-            List<String> menu = new ArrayList<>();
-            menu.add(ColorText.text("ICT서버 설정", "white", "none", true, false, false));
-            menu.add("수동 모드 적용하기");
-            menu.add("설정");
-            menu.add("업데이터 종료");
-
-            Util.printMenu(menu);
-
-            System.out.println();
-            String typed_str = input("선택하실 메뉴 번호를 입력해 주세요");
-
-            switch (typed_str) {
-                case "1" -> {
+            List<String> menuItem = Arrays.asList("ICT서버 설정", "수동 모드 적용하기", "설정", "업데이터 종료");
+            switch (Util.printMenu(menuItem, "DSL 모드 업데이트 관리자") + 1) {
+                case 1 -> {
                     SetICT.run();
                     continue;
                 }
 
-                case "2" -> {
+                case 2 -> {
                     ApplyMods.run();
                     continue;
                 }
 
-                case "3" -> {
+                case 3 -> {
                     Options.run();
                     continue;
                 }
 
-                case "4" -> {
+                case 4 -> {
                     if (ask("업데이터를 종료하시겠습니까?")) {
                         printMessage("info", "모드 업데이터를 종료합니다.");
                         return;
                     } else continue;
                 }
+
+                case 5 -> Test.main(new String[0]);
 
                 default -> {
                     printMessage("error", "잘못 입력하셨습니다. 메인 화면으로 돌아갑니다...");

@@ -2,11 +2,16 @@ package kr.kro.dslofficial.func;
 
 import kr.kro.dslofficial.ColorText;
 import kr.kro.dslofficial.Util;
+import kr.kro.dslofficial.obj.ServerResponse;
+import kr.kro.dslofficial.obj.enums.ConnectionStatus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class Autorun extends Util {
     /*
@@ -42,7 +47,6 @@ public class Autorun extends Util {
         JSONObject defaultICT = parseStr(data.get("default").toString(), JSONObject.class);
         JSONArray ictList = parseStr(data.get("ICT").toString(), JSONArray.class);
 
-        System.out.println();
         System.out.println();
         printTitle("DSLModUpdater AGENT AUTORUN");
         System.out.println();
@@ -109,6 +113,90 @@ public class Autorun extends Util {
             } while (true);
         }
 
-        System.out.println("선택된 ICT - NAME : " + selectedICT.get("name") + ", URL : " + selectedICT.get("URL"));
+        printMessage("info", ColorText.text(" [ " + selectedICT.getString("name") + " ] ", "green", "none", false, false, false) + ColorText.text(" ICT 서버로 검사를 시작합니다.", "white", "none", true, false, false));
+
+        // ICT Server Validation
+        printMessage("info", "서버와 통신을 시도중입니다.");
+        ServerResponse resp = getResponse(selectedICT.getString("URL"));
+        if (resp.status != ConnectionStatus.OK) {
+            printMessage("error", "서버와의 통신에 실패하였습니다.");
+            pause(3000);
+            return;
+        }
+
+        JSONObject obj;
+        JSONArray serverMods;
+        try {
+            obj = new JSONObject(resp.response);
+            if (obj.isNull("version") || obj.isNull("mods"))
+                throw new JSONException("");
+            else serverMods = new JSONArray(obj.get("mods").toString());
+        // 여기서 catch되는 JSONException은 아래와 다르게 처리해야함
+        } catch (JSONException e) {
+            printMessage("error", "올바른 ICT서버가 아닙니다.");
+            pause(2000);
+            return;
+        }
+
+        try {
+            File modsDir = new File(data.getString("path"));
+            if (!modsDir.exists()) {
+                printMessage("error", "모드 폴더 (" + modsDir.toPath() + ") 를 찾을 수 없습니다.");
+                pause(3000);
+                return;
+            }
+
+            // 비교 시작
+            boolean isValid = true;
+            // Step 1. 파일 갯수가 동일하여야 함
+            if (modsDir.listFiles() != null && Objects.requireNonNull(modsDir.listFiles()).length != serverMods.length()) isValid = false;
+            // Step 2. Hash 값 비교
+            else {
+                Map<String, Boolean> localModMap = new HashMap<>();
+                for (File f : Objects.requireNonNull(modsDir.listFiles())) {
+                    localModMap.put(hashFile(f), false);
+                }
+
+                try {
+                    for (Object o : serverMods) {
+                        JSONObject mod = new JSONObject(o.toString());
+                        if (localModMap.get(mod.getString("hash")) == null) {
+                            isValid = false;
+                            break;
+                        }
+                        else localModMap.put(mod.getString("hash"), true);
+                    }
+
+                    for (String key : localModMap.keySet()) {
+                        if (!localModMap.get(key)) {
+                            isValid = false;
+                            break;
+                        }
+                    }
+                // 다르게 catch 필요
+                } catch (JSONException e) {
+                    printMessage("error", "ICT서버 mods 배열에 오류가 있습니다.");
+                    pause(3000);
+                    return;
+                }
+            }
+
+            printTitle("검사 완료");
+            System.out.println();
+
+            if (isValid) {
+                printMessage("info", "모드가 최신 버전 (" + ColorText.text(obj.getString("version"), "green", "none", true, false, false) + ") 과 일치합니다.");
+                pause(2000);
+            } else {
+                printMessage("warn", "모드가 최신 버전과 상이합니다.");
+                if (ask("새로운 모드를 다운받고 적용하시겠습니까?\n" + ColorText.text("mods폴더 (" + modsDir.toPath() + ") 안의 모든 내용이 손실됩니다!", "red", "none", true, false, false))) {
+                    //TODO : APPLY MODS
+                    System.out.println("새로운모드적용");
+                }
+            }
+        } catch (JSONException e) {
+            printMessage("error", "updater.dat 파일이 손상되었습니다.");
+            pause(3000);
+        }
     }
 }

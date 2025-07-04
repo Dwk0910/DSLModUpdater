@@ -33,6 +33,7 @@ dependencies {
     implementation 'commons-io:commons-io:2.19.0'
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
     implementation 'org.json:json:20250517'
+    implementation 'org.jline:jline:3.30.4'
     implementation fileTree(dir: 'libs', includes: ['*.jar'])
 }
 

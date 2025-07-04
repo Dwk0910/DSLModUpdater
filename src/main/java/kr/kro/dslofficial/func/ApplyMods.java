@@ -116,7 +116,7 @@ public class ApplyMods extends Util {
             items.add("서버모드 적합성 검사");
             items.add("뒤로가기");
 
-            Main.printMenu(items);
+//            Main.printMenu(items);
             System.out.println();
             String s = input("선택하실 메뉴 번호를 입력해 주세요");
 
