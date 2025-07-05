@@ -7,13 +7,16 @@ import org.apache.commons.io.FileUtils;
 
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -29,10 +32,17 @@ import java.security.NoSuchAlgorithmException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+/*
+TODO: 한계점: 마인크래프트가 '%appdata%/.minecraft'에 깔려 있을 경우에만 한하여 정상작동됨
+ */
 public class Util {
     public static boolean ask(String message) {
         System.out.print(ColorText.text(message, "yellow", "none", true, false, false) + " " + ColorText.text("[" + ColorText.text("Y", "white", "none", true, false, true) + "es/" + ColorText.text("N", "white", "none", true, false, true) + "o] ", "white", "none", false, false, false) + " : ");
@@ -284,12 +294,13 @@ public class Util {
 
         try {
             Future<String> future = executor.submit(() -> Main.reader.readLine());
-            Main.tw.println();
             future.get(waitMilesec, TimeUnit.MILLISECONDS);
+            Main.tw.println();
             executor.shutdownNow();
             return "";
         } catch (TimeoutException e) {
             executor.shutdownNow();
+            Main.tw.println();
             return null;
         } catch (Exception e) {
             e.printStackTrace();
@@ -313,6 +324,26 @@ public class Util {
             return new ServerResponse(null, ConnectionStatus.INVALID_URL);
         } catch (IOException e) {
             return new ServerResponse(null, ConnectionStatus.CONNERR);
+        }
+    }
+
+    public static boolean downloadFileFromURL(String URL, File target) {
+        try {
+            URL url = new URL(URL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(100000);
+            conn.setReadTimeout(100000);
+
+            FileOutputStream fos = new FileOutputStream(target);
+            InputStream is = conn.getInputStream();
+
+            fos.write(is.readAllBytes());
+            fos.flush();
+            fos.close();
+            is.close();
+            return true;
+        } catch (IOException e) {
+            return false;
         }
     }
 

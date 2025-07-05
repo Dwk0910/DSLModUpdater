@@ -1,6 +1,6 @@
 package kr.kro.dslofficial;
 
-import kr.kro.dslofficial.func.Autorun;
+import kr.kro.dslofficial.pages.Autorun;
 
 import java.io.File;
 import java.io.IOException;

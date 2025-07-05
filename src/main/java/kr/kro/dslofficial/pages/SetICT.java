@@ -1,4 +1,4 @@
-package kr.kro.dslofficial.func;
+package kr.kro.dslofficial.pages;
 
 import kr.kro.dslofficial.ColorText;
 import kr.kro.dslofficial.Util;

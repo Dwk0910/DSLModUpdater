@@ -1,4 +1,7 @@
-package kr.kro.dslofficial;
+package kr.kro.dslofficial.obj;
+
+import kr.kro.dslofficial.ColorText;
+import kr.kro.dslofficial.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -1,7 +1,7 @@
 package kr.kro.dslofficial.func;
 
 import kr.kro.dslofficial.ColorText;
-import kr.kro.dslofficial.Loading;
+import kr.kro.dslofficial.obj.Loading;
 import kr.kro.dslofficial.Main;
 import kr.kro.dslofficial.Util;
 

@@ -1,14 +1,23 @@
-package kr.kro.dslofficial.func;
+package kr.kro.dslofficial.pages;
 
+import kr.kro.dslofficial.Main;
 import kr.kro.dslofficial.ColorText;
 import kr.kro.dslofficial.Util;
+import kr.kro.dslofficial.func.DownloadMods;
 import kr.kro.dslofficial.obj.ServerResponse;
 import kr.kro.dslofficial.obj.enums.ConnectionStatus;
+
+import org.apache.commons.io.FileUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -124,13 +133,13 @@ public class Autorun extends Util {
             return;
         }
 
-        JSONObject obj;
+        JSONObject serverObject;
         JSONArray serverMods;
         try {
-            obj = new JSONObject(resp.response);
-            if (obj.isNull("version") || obj.isNull("mods"))
+            serverObject = new JSONObject(resp.response);
+            if (serverObject.isNull("version") || serverObject.isNull("mods"))
                 throw new JSONException("");
-            else serverMods = new JSONArray(obj.get("mods").toString());
+            else serverMods = new JSONArray(serverObject.get("mods").toString());
         // 여기서 catch되는 JSONException은 아래와 다르게 처리해야함
         } catch (JSONException e) {
             printMessage("error", "올바른 ICT서버가 아닙니다.");
@@ -175,7 +184,7 @@ public class Autorun extends Util {
                     }
                 // 다르게 catch 필요
                 } catch (JSONException e) {
-                    printMessage("error", "ICT서버 mods 배열에 오류가 있습니다.");
+                    printMessage("error", "ICT서버 mods 배열에 오류가 있습니다. ICT서버 관리자에게 문의하십시오.");
                     pause(3000);
                     return;
                 }
@@ -185,13 +194,50 @@ public class Autorun extends Util {
             System.out.println();
 
             if (isValid) {
-                printMessage("info", "모드가 최신 버전 (" + ColorText.text(obj.getString("version"), "green", "none", true, false, false) + ") 과 일치합니다.");
+                printMessage("info", "모드가 최신 버전 '" + ColorText.text(serverObject.getString("version"), "green", "none", true, false, false) + "' 과 일치합니다.");
+                printMessage("info", "업데이터를 종료합니다.");
                 pause(2000);
             } else {
                 printMessage("warn", "모드가 최신 버전과 상이합니다.");
-                if (ask("새로운 모드를 다운받고 적용하시겠습니까?\n" + ColorText.text("mods폴더 (" + modsDir.toPath() + ") 안의 모든 내용이 손실됩니다!", "red", "none", true, false, false))) {
-                    //TODO : APPLY MODS
-                    System.out.println("새로운모드적용");
+                printMessage("info", "새로운 모드를 다운받고 적용합니다.");
+                printMessage("warn", ColorText.text("mods폴더 (" + modsDir.toPath() + ") 안의 모든 내용이 손실됩니다!", "red", "none", true, false, false));
+                if (waitInput("자동 다운로드를 취소하시려면 3초 이내에 <ENTER>를 누르십시오...", 3000) == null) {
+                    try {
+                        File tempFolder = getContent("temp", File.class);
+                        printMessage("info", "temp 폴더를 초기화합니다.");
+                        FileUtils.cleanDirectory(tempFolder);
+
+                        DownloadMods.run(serverMods, tempFolder);
+                        pause(500);
+                        clearConsole();
+
+                        printTitle("다운로드 완료");
+                        Main.tw.println();
+                        printMessage("info", "파일 다운로드가 완료되었습니다.");
+
+                        printMessage("info", "mods 폴더를 정리합니다.");
+                        FileUtils.cleanDirectory(modsDir);
+
+                        printMessage("info", "파일을 옮겨 모드를 적용합니다.");
+                        // temp 폴더 내 모든 파일 -> mods폴더로 이동
+                        for (File f : Objects.requireNonNull(tempFolder.listFiles())) {
+                            Files.copy(f.toPath(), new File(modsDir.toPath() + File.separator + f.getName()).toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        }
+
+                        // temp 폴더 초기화
+                        printMessage("info", "마무리 작업중입니다.");
+                        FileUtils.cleanDirectory(tempFolder);
+
+                        // 작업 성공 출력
+                        printMessage("info", "모드가 '" + ColorText.text(selectedICT.getString("name"), "blue", "none", true, false, false) + "' ICT의 최신 버전인 " + ColorText.text(serverObject.getString("version"), "green", "none", true, false, false) + " 과 성공적으로 동일하게 적용되었습니다.");
+                    } catch (IOException e) {
+                        printMessage("error", "모드 적용을 실패했습니다.");
+                    }
+                    printMessage("info", "업데이터를 종료합니다.");
+                    pause(2000);
+                } else {
+                    printMessage("info", "자동 다운로드가 취소되었습니다. 업데이터를 종료합니다.");
+                    pause(2000);
                 }
             }
         } catch (JSONException e) {

@@ -1,23 +1,31 @@
 package kr.kro.dslofficial;
 
-import kr.kro.dslofficial.func.ApplyMods;
-import kr.kro.dslofficial.func.Options;
-import kr.kro.dslofficial.func.Autorun;
-import kr.kro.dslofficial.func.SetICT;
-
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-import org.jline.reader.UserInterruptException;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import kr.kro.dslofficial.pages.Options;
+import kr.kro.dslofficial.pages.Autorun;
+import kr.kro.dslofficial.pages.SetICT;
 
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
 
-import java.io.*;
-import java.net.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.util.*;
+import java.io.IOException;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
+import java.net.URI;
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Main extends Util {
     public static final String version = "v1.1.0";
@@ -217,12 +225,10 @@ public class Main extends Util {
                     continue;
                 } else {
                     try {
-                        Map<String, Object> mapObj = new HashMap<>();
-                        mapObj.put("path", f.toPath());
-                        mapObj.put("ICT", new JSONArray());
-                        mapObj.put("default", new JSONObject());
-
-                        JSONObject obj = new JSONObject(mapObj);
+                        JSONObject obj = new JSONObject();
+                        obj.put("path", f.toPath());
+                        obj.put("default", new JSONObject());
+                        obj.put("ICT", new JSONArray());
 
                         FileWriter writer = new FileWriter(dataFile);
                         writer.write(obj.toString(4));
@@ -260,7 +266,12 @@ public class Main extends Util {
                 }
 
                 case 2 -> {
-                    ApplyMods.run();
+                    try {
+                        // ByAgent 실행
+                        Runtime.getRuntime().exec("cmd /c start cmd.exe /k \"cd " + System.getProperty("user.dir") + " && .\\jre\\bin\\java.exe -jar DSLModUpdater.jar --ByAgent && exit");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     continue;
                 }
 
@@ -285,9 +296,5 @@ public class Main extends Util {
                 }
             }
         } while (true);
-    }
-
-    public static void clearConsole() {
-        for (int i = 1; i <= 100; i++) System.out.println();
     }
 }
