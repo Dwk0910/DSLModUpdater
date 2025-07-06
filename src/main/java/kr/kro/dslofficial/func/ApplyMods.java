@@ -1,7 +1,7 @@
 package kr.kro.dslofficial.func;
 
 import kr.kro.dslofficial.ColorText;
-import kr.kro.dslofficial.Loading;
+import kr.kro.dslofficial.obj.Loading;
 import kr.kro.dslofficial.Main;
 import kr.kro.dslofficial.Util;
 
@@ -46,7 +46,7 @@ public class ApplyMods extends Util {
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
                     Main.printMessage("error", "URL서버와 연결에 실패했습니다. 관리자에게 문의해주세요.");
-                    Util.pause(1000);
+                    Util.pause(2000);
                     return;
                 }
 
@@ -84,7 +84,7 @@ public class ApplyMods extends Util {
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
                     Main.printMessage("error", "모드 업데이트 버전확인 서버와 연결에 실패했습니다. 관리자에게 문의해주세요.");
-                    Util.pause(1000);
+                    Util.pause(2000);
                     return;
                 }
 
@@ -117,7 +117,7 @@ public class ApplyMods extends Util {
             items.add("서버모드 적합성 검사");
             items.add("뒤로가기");
 
-            Main.printMenu(items);
+//            Main.printMenu(items);
             System.out.println();
             String s = input("선택하실 메뉴 번호를 입력해 주세요");
 
@@ -190,7 +190,7 @@ public class ApplyMods extends Util {
 
                 default -> {
                     Main.printMessage("error", "잘못 입력하셨습니다. 다시 돌아갑니다...");
-                    Util.pause(1000);
+                    Util.pause(2000);
                     continue;
                 }
             }

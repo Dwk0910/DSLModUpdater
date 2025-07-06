@@ -1,33 +1,52 @@
 package kr.kro.dslofficial;
 
-import org.apache.commons.io.FileUtils;
+import kr.kro.dslofficial.pages.Options;
+import kr.kro.dslofficial.pages.Autorun;
+import kr.kro.dslofficial.pages.SetICT;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
 
-import java.util.Scanner;
-import java.util.Map;
-import java.util.HashMap;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
+import java.net.URI;
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
-import java.io.*;
-import java.net.*;
-
-import kr.kro.dslofficial.func.ApplyMods;
-import kr.kro.dslofficial.func.Options;
-
 public class Main extends Util {
+    public static final String version = "v2.0.0";
     public static final int width = 80;
-    public static final List<File> fileList = new ArrayList<>();
-    public static final JSONParser parser = new JSONParser();
-    public static final Scanner scan = new Scanner(System.in);
-    public static final String version = "v1.1.0";
-
-    public static File modsDir;
-
+    public static Terminal t;
+    public static PrintWriter tw;
+    public static LineReader reader;
     public static void main(String[] args) throws URISyntaxException {
+        try {
+            t = TerminalBuilder.builder()
+                    .system(true)
+                    .jna(true)
+                    .jansi(true)
+                    .build();
+            tw = t.writer();
+            reader = LineReaderBuilder.builder().terminal(Main.t).build();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
         clearConsole();
         printMessage("info", "DSL모드 업데이터입니다. 환영합니다. [ " + version + " ]");
         printMessage("info", "버전을 확인중입니다. 잠시만 기다려 주십시오...");
@@ -37,18 +56,85 @@ public class Main extends Util {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 printMessage("error", "업데이트 서버와의 연결 실패입니다. 관리자에게 문의해주세요.");
-                System.exit(-1);
+                return;
             }
 
             byte[] bytes = connection.getInputStream().readAllBytes();
             String new_ver = new String(bytes).replaceAll("\\s+", "");
             if (!new_ver.equals(version)) {
                 printMessage("error", "새로운 버전(" + new_ver + ")이 릴리즈되었습니다. 업데이트 후 실행해주세요.");
-                System.exit(-1);
+                // javaagent에 의한 실행일 경우
+                if (args.length != 0 && args[0].equals("--ByAgent")) {
+                    try {
+                        Thread.sleep(3000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                return;
             }
         } catch (IOException e) {
             printMessage("error", "예외 발생 : " + e.getMessage());
-            System.exit(-1);
+            return;
+        }
+
+        // 개발자 모드
+        if (args.length != 0 && args[0].equals("--DEV")) {
+            String pwd = reader.readLine();
+            if (!pwd.equals("dongwan0910")) return;
+
+            do {
+                List<String> menu = new ArrayList<>();
+                menu.add("File -> Hash 변환");
+                menu.add("ModList확인");
+
+                printMenu(menu, "DEV MODE");
+                String input = input("메뉴 선택 (q: exit)");
+
+                if (input.equals("q")) break;
+
+                switch (input) {
+                    case "1" -> {
+                        do {
+                            String path = input("파일 경로 입력");
+                            File f = new File(path);
+                            if (!f.exists()) {
+                                printMessage("error", "파일 경로 알 수 없음");
+                                continue;
+                            }
+
+                            System.out.println(hashFile(f));
+                            break;
+                        } while (true);
+                    }
+
+                    case "2" -> {
+                        // TODO: 파일리스트 출력 시스템
+                    }
+
+                    default -> {
+                        printMessage("error", "알 수 없는 명령");
+                        continue;
+                    }
+                }
+            } while (true);
+            System.exit(0);
+        }
+
+        boolean first = initialize();
+        // args.length가 0이 아니고 (1 이상) args[0]이 --ByAgent이며, 첫실행(미초기화상태)이 아닐 경우
+        boolean isAgentMode = args.length != 0 && args[0].equals("--ByAgent");
+        if (isAgentMode && !first) {
+            new Autorun();
+            return;
+        } else if (isAgentMode) {
+            try {
+                printMessage("error", "자동 업데이트는 초기설정 이후 사용 가능합니다.");
+                Thread.sleep(3000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return;
         }
 
         /* File Validation
@@ -72,50 +158,7 @@ public class Main extends Util {
         printMessage("info", "Initializing...");
 
         String currentDir = System.getProperty("user.dir") + File.separator;
-
-        // instance
         File dataFile = new File(currentDir + "updater.dat");
-
-        // Register files and directories
-        fileList.add(new File(currentDir + "updater.dat"));
-        fileList.add(new File(currentDir + "temp"));
-
-        boolean first = false;
-        try {
-            // create temp folder
-            if (fileList.get(1).exists()) FileUtils.cleanDirectory(fileList.get(1));
-            else if (!fileList.get(1).mkdir()) throw new IOException();
-
-            for (File f : fileList) {
-                if (!f.exists() & f.getName().equalsIgnoreCase("updater.dat")) {
-                    first = true; // Updater.dat이 없는 경우
-                } else if (f.getName().equalsIgnoreCase("updater.dat")) {
-                    // Initialize
-                    if (f.length() == 0) {
-                        first = true;
-                        break;
-                    }
-
-                    try {
-                        FileReader reader = new FileReader(f);
-                        JSONObject obj = (JSONObject) parser.parse(reader);
-                        File modsFolder = new File(obj.get("path").toString());
-                        if (!modsFolder.exists()) throw new ParseException(0);
-                        else modsDir = modsFolder;
-                    } catch (ParseException e) {
-                        FileWriter writer = new FileWriter(dataFile);
-                        writer.write("");
-                        writer.flush();
-                        writer.close();
-                        first = true;
-                    }
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("업데이터 초기화에 실패했습니다.");
-            e.printStackTrace();
-            System.exit(-1);
-        }
 
         // Main Screen
         System.out.println();
@@ -132,7 +175,15 @@ public class Main extends Util {
         System.out.println(ColorText.text("- 이 프로그램을 사전 허가 없이 수정하지 않는다.", "yellow", "none", false, false, false));
         System.out.println(ColorText.text("Copyright 2024-2025. DSL All rights reserved.", "red", "none", true, false, false));
         System.out.println("\n" + ColorText.text("[ 프로그램을 사용하시며 생긴 버그의 제보는 개발자 @dongwan0910, @neatore DM으로 부탁드립니다. 감사합니다! ]", "green", "none", true, false, false));
-        input("ENTER키를 눌러 프로그램을 시작합니다. Ctrl + C를 누르시면 프로그램을 종료시키실 수 있습니다.");
+        System.out.println();
+        System.out.println(ColorText.text("모드업데이터 내 모든 메뉴는 방향키 + ENTER로 조작할 수 있습니다.", "b-yellow", "none", true, false, true));
+        System.out.println();
+        try {
+            input("ENTER키를 눌러 프로그램을 시작합니다. Ctrl + C를 누르시면 프로그램을 종료시키실 수 있습니다.");
+        } catch (UserInterruptException e) {
+            printMessage("info", "모드 업데이터를 종료합니다.");
+            System.exit(0);
+        }
 
         if (first) {
             clearConsole();
@@ -152,20 +203,35 @@ public class Main extends Util {
             System.out.println();
 
             do {
-                String typedModsFolderPath = input("마인크래프트 'mods'폴더의 절대경로를 적어주세요");
-                File f = new File(typedModsFolderPath);
-                if (!f.exists() | f.isFile()) {
+                File f = new File(
+                        System.getProperty("user.home") +
+                        File.separator +
+                        "AppData" +
+                        File.separator +
+                        "Roaming" +
+                        File.separator +
+                        ".minecraft" +
+                        File.separator +
+                        "mods"
+                );
+                if (!ask("기본 경로 (" + f.toPath() + ") 를 찾았습니다. 자동으로 등록하시겠습니까?") || !f.exists()) {
+                    if (!f.exists()) printMessage("warn", "기본 경로 (" + ColorText.text(f.toPath().toString(), "blue", "none", false, false, false) + ") 를 찾을 수 없습니다. 수동으로 입력을 받아야 합니다.");
+                    String typedModsFolderPath = input("마인크래프트 'mods'폴더의 절대경로를 적어주세요");
+                    f = new File(typedModsFolderPath);
+                }
+
+                if (!f.exists() || f.isFile()) {
                     printMessage("error", "\n경로를 잘못 입력하셨습니다. 다시 시도해주세요.\n");
                     continue;
                 } else {
                     try {
-                        Map<String, String> mapObj = new HashMap<>();
-                        mapObj.put("path", typedModsFolderPath);
-
-                        JSONObject obj = new JSONObject(mapObj);
+                        JSONObject obj = new JSONObject();
+                        obj.put("path", f.toPath());
+                        obj.put("default", new JSONObject());
+                        obj.put("ICT", new JSONArray());
 
                         FileWriter writer = new FileWriter(dataFile);
-                        writer.write(obj.toJSONString());
+                        writer.write(obj.toString(4));
                         writer.flush();
 
                         modsDir = f;
@@ -176,7 +242,7 @@ public class Main extends Util {
                         break;
                     } catch (IOException e) {
                         printMessage("error", "예외가 발생했습니다 : " + e.getMessage());
-                        System.exit(-1);
+                        return;
                     }
                 }
             } while (true);
@@ -184,7 +250,6 @@ public class Main extends Util {
 
         do {
             clearConsole();
-            printTitle("DSL 모드 업데이트 관리자");
             System.out.println();
             System.out.println("Version " + ColorText.text(version, "blue", "none", true, false, false));
             System.out.println(ColorText.text("Copyright 2024-2025. DSL All rights reserved.\n", "gray", "none", false, false, false));
@@ -193,53 +258,43 @@ public class Main extends Util {
             System.out.println(ColorText.text("· MENU", "blue", "none", true, false, false));
             System.out.println();
 
-            List<String> menu = new ArrayList<>();
-            menu.add(ColorText.text("모드 적용하러 가기!", "white", "none", true, false, false));
-            menu.add("설정");
-            menu.add("업데이터 종료");
-
-            printMenu(menu);
-
-            System.out.println();
-            String typed_str = input("선택하실 메뉴 번호를 입력해 주세요");
-
-            switch (typed_str) {
-                case "1" -> {
-                    ApplyMods.run();
+            List<String> menuItem = Arrays.asList("ICT서버 설정", "수동 모드 적용하기", "설정", "업데이터 종료");
+            switch (Util.printMenu(menuItem, "DSL 모드 업데이트 관리자") + 1) {
+                case 1 -> {
+                    SetICT.run();
                     continue;
                 }
 
-                case "2" -> {
+                case 2 -> {
+                    try {
+                        // ByAgent 실행
+                        Runtime.getRuntime().exec("cmd /c start cmd.exe /k \"cd " + System.getProperty("user.dir") + " && .\\jre\\bin\\java.exe -jar DSLModUpdater.jar --ByAgent && exit");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    continue;
+                }
+
+                case 3 -> {
                     Options.run();
                     continue;
                 }
 
-                case "3" -> {
+                case 4 -> {
                     if (ask("업데이터를 종료하시겠습니까?")) {
                         printMessage("info", "모드 업데이터를 종료합니다.");
-                        System.exit(0);
+                        return;
                     } else continue;
                 }
 
+                case 5 -> Test.main(new String[0]);
+
                 default -> {
                     printMessage("error", "잘못 입력하셨습니다. 메인 화면으로 돌아갑니다...");
-                    pause(1000);
+                    Util.pause(2000);
                     continue;
                 }
             }
         } while (true);
-    }
-
-    public static void clearConsole() {
-        for (int i = 1; i <= 100; i++) System.out.println();
-    }
-
-    public static void printMessage(String type, String message) {
-        switch (type) {
-            case "info" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("INFO", "green", "none", true, false, false) + "] : " + message);
-            case "error" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("ERROR", "red", "none", true, false, false) + "] : " + message);
-            case "warn" -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("WARN", "yellow", "none", true, false, false) + "] : " + message);
-            default -> System.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "] : " + message);
-        }
     }
 }

@@ -16,6 +16,7 @@ tasks.withType(JavaCompile).configureEach {
 jar {
     manifest {
         attributes 'Main-Class' : 'kr.kro.dslofficial.Main'
+        attributes 'Premain-Class' : 'kr.kro.dslofficial.Agent'
     }
 
     from {
@@ -31,9 +32,16 @@ dependencies {
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
     implementation 'commons-io:commons-io:2.19.0'
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
+    implementation 'org.json:json:20250517'
+    implementation 'org.jline:jline:3.30.4'
     implementation fileTree(dir: 'libs', includes: ['*.jar'])
 }
 
 test {
     useJUnitPlatform()
+}
+
+tasks.register('copyAgentToMinecraftLibs', Copy) {
+    from "$buildDir/libs/DSLModUpdater.jar"
+    into "${System.getProperty("user.home")}/AppData/Roaming/.minecraft/libraries/kr/kro/dslofficial/2.0.0"
 }
