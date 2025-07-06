@@ -193,7 +193,8 @@ public class SetICT extends Util {
                                 data.put("ICT", newIctList);
 
                                 // default에서 삭제
-                                if (new JSONObject(data.get("default").toString()).get("name").equals(ict.get("name"))) data.put("default", new JSONObject());
+                                JSONObject defObj = new JSONObject(data.get("default").toString());
+                                if (!defObj.isNull("name") && defObj.get("name").equals(ict.get("name"))) data.put("default", new JSONObject());
 
                                 // 파일 쓰기
                                 File f = getContent("updater.dat", File.class);
