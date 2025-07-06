@@ -8,7 +8,7 @@ DSL에서 공식적으로 모드서버를 연 서버의 경우 이 모드 메니
 ## 2. 설치 및 사용
 > [DSLModUpdater v2.0.0 SETUP 다운로드 링크](https://drive.google.com/file/d/1pxKPVpNKsqTVS7umtuvOCRDK5T1RDah8/view?usp=sharing)
 
-### 패치노트 (v1.1.0)
+### 패치노트 (v2.0.0)
 Release Date : 2025.07.06.
 
 #### 새로운 기능
