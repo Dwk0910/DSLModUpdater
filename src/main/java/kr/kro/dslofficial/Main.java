@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Main extends Util {
-    public static final String version = "v1.1.0";
+    public static final String version = "v2.0.0";
     public static final int width = 80;
     public static Terminal t;
     public static PrintWriter tw;

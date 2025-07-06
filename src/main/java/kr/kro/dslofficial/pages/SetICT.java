@@ -1,5 +1,6 @@
 package kr.kro.dslofficial.pages;
 
+import kr.kro.dslofficial.Main;
 import kr.kro.dslofficial.ColorText;
 import kr.kro.dslofficial.Util;
 import kr.kro.dslofficial.obj.ServerResponse;
@@ -76,7 +77,7 @@ public class SetICT extends Util {
                 if (!ask(ColorText.text(url, "blue", "none", true, false, false) + ColorText.text(" : 입력하신 URL이 맞습니까?", "yellow", "none", false , false, false))) continue;
                 printMessage("info", "URL등록을 시작합니다.");
 
-                if (alreadExists(ictList, new JSONObject().put("URL", url))) {
+                if (alreadyExists(ictList, new JSONObject().put("URL", url), "URL")) {
                     printMessage("info", "이 URL은 이미 존재합니다.");
                     pause(2000);
                     continue;
@@ -118,10 +119,16 @@ public class SetICT extends Util {
 
                 String typedName;
                 do {
-                     typedName = input("이 서버를 무슨 이름으로 저장하시겠습니까?");
+                    typedName = input("이 서버를 무슨 이름으로 저장하시겠습니까?");
                     if (typedName == null) continue;
+                    // 이름 중복 금지
+                    else if (alreadyExists(ictList, new JSONObject().put("name", typedName), "name")) {
+                        printMessage("error", "이 이름은 이미 존재합니다.");
+                        continue;
+                    }
                     else break;
                 } while (true);
+
 
                 ictList.put(new JSONObject().put("name", typedName).put("URL", url));
                 data.put("ICT", ictList);
@@ -171,7 +178,43 @@ public class SetICT extends Util {
 
                     List<String> menu = Arrays.asList("이름 변경", "URL 변경", "기본 ICT 서버로 만들기", "검사", "삭제", "뒤로가기");
                     int typed = printMenu(menu, "ICT서버 관리", fixed) + 1;
+
+                    // do문 break가 필요한 동작 5(삭제), 6(돌아가기)
+                    if (typed == 5) {
+                        // 삭제
+                        if (ask("정말 ICT서버 " + ColorText.text(ict.get("name").toString(), "blue", "none", true, false, false) + ColorText.text("를 삭제하시겠습니까? ", "b-yellow", "none", false, false, false) + ColorText.text("이 작업은 되돌릴 수 없습니다!", "red", "none", true, false, false))) {
+                            try {
+                                // ICT Array에서 삭제
+                                JSONArray newIctList = new JSONArray();
+                                for (Object o : ictList) {
+                                    JSONObject obj = new JSONObject(o.toString());
+                                    if (!obj.get("name").equals(ict.get("name"))) newIctList.put(o);
+                                }
+                                data.put("ICT", newIctList);
+
+                                // default에서 삭제
+                                if (new JSONObject(data.get("default").toString()).get("name").equals(ict.get("name"))) data.put("default", new JSONObject());
+
+                                // 파일 쓰기
+                                File f = getContent("updater.dat", File.class);
+                                FileWriter writer = new FileWriter(f);
+                                writer.write(data.toString(4));
+                                writer.flush();
+                                writer.close();
+
+                                printMessage("info", "제거가 완료되었습니다.");
+                                pause(2000);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                printMessage("error", "파일을 쓰는 중 오류가 발생했습니다.");
+                                pause(2000);
+                                continue;
+                            }
+                            break;
+                        } else continue;
+                    }
                     if (typed == 6) break;
+
                     switch (typed) {
                         case 1 -> {
                             // 이름변경
@@ -179,9 +222,16 @@ public class SetICT extends Util {
                             do {
                                 typedName = input("바꿀 이름을 입력하여 주십시오. (취소: exit)");
                                 if (typedName == null) continue;
+                                // 이름 중복 금지
+                                else if (alreadyExists(ictList, new JSONObject().put("name", typedName), "name")) {
+                                    printMessage("error", "이 이름은 이미 존재합니다.");
+                                    continue;
+                                }
+
                                 else break;
                             } while (true);
                             if (typedName.equals("exit")) continue;
+
 
                             changeFromICT(data, ict.get("name").toString(), "name", typedName);
                             printMessage("info", "이름 변경이 완료되었습니다.");
@@ -204,7 +254,7 @@ public class SetICT extends Util {
                                 continue;
                             printMessage("info", "URL등록을 시작합니다.");
 
-                            if (alreadExists(ictList, new JSONObject().put("URL", typedURL))) {
+                            if (alreadyExists(ictList, new JSONObject().put("URL", typedURL), "URL")) {
                                 printMessage("info", "이 URL은 이미 존재합니다.");
                                 pause(2000);
                                 continue;
@@ -282,11 +332,28 @@ public class SetICT extends Util {
                         }
 
                         case 4 -> {
-                            // TODO: 검사
-                        }
+                            // 검사
+                            try {
+                                printMessage("info", "이 ICT 서버의 연결을 검사합니다.");
+                                ServerResponse response = getResponse(ict.get("URL").toString());
+                                if (response.status != ConnectionStatus.OK) throw new Exception();
+                                JSONObject obj = new JSONObject(response.response);
+                                if (obj.isNull("version") || obj.isNull("mods")) throw new Exception();
+                                JSONArray array = new JSONArray(obj.get("mods").toString());
+                                for (Object o : array) {
+                                    JSONObject mod = new JSONObject(o.toString());
+                                    if (mod.isNull("URL") || mod.isNull("hash")) throw new Exception();
+                                }
+                                String version = obj.get("version").toString();
+                                int size = array.length();
 
-                        case 5 -> {
-                            // TODO: 삭제
+                                printMessage("info", "ICT 서버가 올바릅니다.");
+                                printMessage("info", "최신 버전 : '" + ColorText.text(version, "green", "none", true, false, false) + "', 사용 가능한 모드 : " + ColorText.text(size + "개", "blue", "none", true, false, false));
+                                Main.tw.print("게속하려면 ENTER를 누르십시오...");
+                                Main.reader.readLine();
+                            } catch (Exception e) {
+                                printMessage("error", "서버와의 연결에 실패하였거나, 올바른 ICT 서버가 아닙니다.");
+                            }
                         }
 
                         default -> {
@@ -330,10 +397,10 @@ public class SetICT extends Util {
         }
     }
 
-    public static boolean alreadExists(JSONArray ictArray, JSONObject object) {
+    public static boolean alreadyExists(JSONArray ictArray, JSONObject object, String targetKey) {
         for (Object o : ictArray) {
             JSONObject obj = new JSONObject(o.toString());
-            if (object.get("URL").equals(obj.get("URL"))) return true;
+            if (object.get(targetKey).equals(obj.get(targetKey))) return true;
         }
         return false;
     }

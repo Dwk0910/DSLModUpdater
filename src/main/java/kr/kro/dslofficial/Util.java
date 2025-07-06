@@ -45,9 +45,8 @@ TODO: 한계점: 마인크래프트가 '%appdata%/.minecraft'에 깔려 있을 �
  */
 public class Util {
     public static boolean ask(String message) {
-        System.out.print(ColorText.text(message, "yellow", "none", true, false, false) + " " + ColorText.text("[" + ColorText.text("Y", "white", "none", true, false, true) + "es/" + ColorText.text("N", "white", "none", true, false, true) + "o] ", "white", "none", false, false, false) + " : ");
-        LineReader reader = LineReaderBuilder.builder().terminal(Main.t).build();
-        String input = reader.readLine();
+        String prompt = ColorText.text(message, "yellow", "none", true, false, false) + " " + ColorText.text("[" + ColorText.text("Y", "white", "none", true, false, true) + "es/" + ColorText.text("N", "white", "none", true, false, true) + "o] ", "white", "none", false, false, false) + " : ";
+        String input = Main.reader.readLine(prompt);
         return input.equalsIgnoreCase("Y") || input.equalsIgnoreCase("Yes");
     }
 
