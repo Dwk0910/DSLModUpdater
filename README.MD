@@ -133,7 +133,6 @@ DSLModUpdater v2.0.0 의 신기능으로, 당신이 마인크래프트를 실행
 ![image_20](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/20.png)
 
 ## 3. Credits
-`@neatore`는 여러분들의 편하고 재밌는 서버생활을 위해 항상 코딩합니다.<br/>
 버그제보는 `@neatore`또는 `@dongwan0910` DM으로 부탁드립니다.<br/>
 **감사합니다.**
 
