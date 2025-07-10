@@ -5,9 +5,7 @@ import kr.kro.dslofficial.obj.enums.ConnectionStatus;
 
 import org.apache.commons.io.FileUtils;
 
-import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
-
+import org.jline.utils.InfoCmp;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -18,14 +16,14 @@ import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -51,9 +49,7 @@ public class Util {
     }
 
     public static String input(String message) {
-        System.out.println(ColorText.text(" " + message + " ".repeat(Main.width - (message.length() + 1)), "black", "white", true, false, false));
-        LineReader reader = LineReaderBuilder.builder().terminal(Main.t).build();
-        return reader.readLine();
+        return Main.reader.readLine(ColorText.text(" " + message + " ".repeat(Main.width - (message.length() + 1)) + "\n", "black", "white", true, false, false));
     }
 
     public static File modsDir;
@@ -139,7 +135,7 @@ public class Util {
     public static void printTitle(String title) {
         // ===============[ TITLE ]===============
         //                ^^     ^^
-        Main.tw.println(ColorText.text("=", "yellow", "none", false, false, false).repeat((Main.width - (title.length() + 4)) / 2) + " [ " + title + " ] " + ColorText.text("=", "yellow", "none", false, false, false).repeat((Main.width - (title.length() + 4)) / 2));
+        Main.out.println(ColorText.text("=", "yellow", "none", false, false, false).repeat((Main.width - (title.length() + 4)) / 2) + " [ " + title + " ] " + ColorText.text("=", "yellow", "none", false, false, false).repeat((Main.width - (title.length() + 4)) / 2));
     }
 
     public static int printMenu(List<String> items, String title, String... anotherOption) {
@@ -148,22 +144,22 @@ public class Util {
 
         try {
             do {
-                clearConsole();
-
                 // Draw Menu
-                Main.tw.println("\u001B[H");
+                Main.out.println("\u001B[H");
 
                 printTitle(title);
-                Main.tw.println();
-                if (anotherOption.length >= 1) Main.tw.println(anotherOption[0]);
+                Main.out.println();
+                if (anotherOption.length >= 1) Main.out.println(anotherOption[0]);
 
-                Main.tw.println(ColorText.text(" · MENU", "blue", "none", true, false, false));
-                Main.tw.println();
+                Main.out.println(ColorText.text(" · MENU", "blue", "none", true, false, false));
+                Main.out.println();
+                if (anotherOption.length >= 2) Main.out.println(anotherOption[1]);
+                Main.out.println("-".repeat(Main.width));
                 for (int i = 0; i < items.size(); i++) {
-                    if (i == selectedIdx) Main.tw.println(ColorText.text("> " + items.get(i), (anotherOption.length >= 2) ? anotherOption[1] : "green", "none", true, false, false));
-                    else Main.t.writer().println("  " + ColorText.text(items.get(i), "gray", "none", false, false, false));
+                    if (i == selectedIdx) Main.out.println(ColorText.text(" > " + items.get(i), "green", "none", true, false, false));
+                    else Main.t.writer().println("   " + ColorText.text(items.get(i), "gray", "none", false, false, false));
                 }
-                Main.tw.println();
+                Main.out.println("-".repeat(Main.width));
                 Main.t.flush();
 
                 int key = Main.t.reader().read();
@@ -181,13 +177,13 @@ public class Util {
     public static void printArrayMenu(List<String> items) {
         int i = 1;
         for (String item : items) {
-            Main.tw.println(ColorText.text(" [" + i + "] ", "green", "none", true, false, false) + " " + ColorText.text(item, "white", "none", false, false, false));
+            Main.out.println(ColorText.text(" [" + i + "] ", "green", "none", true, false, false) + " " + ColorText.text(item, "white", "none", false, false, false));
             i++;
         }
     }
 
     public static void clearConsole() {
-        Main.t.writer().print("\u001B[H\u001B[2J");
+        Main.t.puts(InfoCmp.Capability.clear_screen);
         Main.t.flush();
     }
 
@@ -278,9 +274,9 @@ public class Util {
 
     public static void printMessage(String type, String message) {
         switch (type) {
-            case "info" -> Main.tw.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("INFO", "green", "none", true, false, false) + "] : " + message);
-            case "error" -> Main.tw.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("ERROR", "red", "none", true, false, false) + "] : " + message);
-            case "warn" -> Main.tw.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("WARN", "yellow", "none", true, false, false) + "] : " + message);
+            case "info" -> Main.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("INFO", "green", "none", true, false, false) + "] : " + message);
+            case "error" -> Main.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("ERROR", "red", "none", true, false, false) + "] : " + message);
+            case "warn" -> Main.out.println("[" + ColorText.text("Updater", "blue", "none", false, false, false) + "/" + ColorText.text("WARN", "yellow", "none", true, false, false) + "] : " + message);
         }
     }
 
@@ -288,18 +284,18 @@ public class Util {
     public static volatile String input = null;
     public static volatile boolean typed = false;
     public static String waitInput(String message_arg, int waitMilesec) {
-        Main.tw.print(message_arg);
+        Main.out.print(message_arg);
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         try {
             Future<String> future = executor.submit(() -> Main.reader.readLine());
             future.get(waitMilesec, TimeUnit.MILLISECONDS);
-            Main.tw.println();
+            Main.out.println();
             executor.shutdownNow();
             return "";
         } catch (TimeoutException e) {
             executor.shutdownNow();
-            Main.tw.println();
+            Main.out.println();
             return null;
         } catch (Exception e) {
             e.printStackTrace();

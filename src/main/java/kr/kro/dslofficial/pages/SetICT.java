@@ -350,7 +350,7 @@ public class SetICT extends Util {
 
                                 printMessage("info", "ICT 서버가 올바릅니다.");
                                 printMessage("info", "최신 버전 : '" + ColorText.text(version, "green", "none", true, false, false) + "', 사용 가능한 모드 : " + ColorText.text(size + "개", "blue", "none", true, false, false));
-                                Main.tw.print("게속하려면 ENTER를 누르십시오...");
+                                Main.out.print("게속하려면 ENTER를 누르십시오...");
                                 Main.reader.readLine();
                             } catch (Exception e) {
                                 printMessage("error", "서버와의 연결에 실패하였거나, 올바른 ICT 서버가 아닙니다.");

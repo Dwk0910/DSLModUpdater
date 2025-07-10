@@ -31,7 +31,7 @@ public class Main extends Util {
     public static final String version = "v2.0.0";
     public static final int width = 80;
     public static Terminal t;
-    public static PrintWriter tw;
+    public static PrintWriter out;
     public static LineReader reader;
     public static void main(String[] args) throws URISyntaxException {
         try {
@@ -40,7 +40,7 @@ public class Main extends Util {
                     .jna(true)
                     .jansi(true)
                     .build();
-            tw = t.writer();
+            out = t.writer();
             reader = LineReaderBuilder.builder().terminal(Main.t).build();
         } catch (IOException e) {
             e.printStackTrace();
@@ -203,30 +203,41 @@ public class Main extends Util {
             System.out.println();
 
             do {
-                File f = new File(
-                        System.getProperty("user.home") +
-                        File.separator +
-                        "AppData" +
-                        File.separator +
-                        "Roaming" +
-                        File.separator +
-                        ".minecraft" +
-                        File.separator +
-                        "mods"
-                );
-                if (!ask("기본 경로 (" + f.toPath() + ") 를 찾았습니다. 자동으로 등록하시겠습니까?") || !f.exists()) {
-                    if (!f.exists()) printMessage("warn", "기본 경로 (" + ColorText.text(f.toPath().toString(), "blue", "none", false, false, false) + ") 를 찾을 수 없습니다. 수동으로 입력을 받아야 합니다.");
-                    String typedModsFolderPath = input("마인크래프트 'mods'폴더의 절대경로를 적어주세요");
-                    f = new File(typedModsFolderPath);
+                File mcFolder = new File(System.getProperty("user.dir")).getParentFile();
+                File modsFolder = new File(mcFolder.getPath() + File.separator + "mods");
+
+                // 기본 마인크래프트 폴더를 찾을 수 없음
+                if (!mcFolder.getName().equals(".minecraft")) mcFolder = new File("");
+
+                boolean manualReq = false;
+                // 마인크래프트 폴더는 존재하는데 기본 모드폴더는 존재하지 않는 경우
+                if (mcFolder.exists() && !modsFolder.exists()) {
+                    printMessage("warn", "기본 마인크래프트 경로 (" + mcFolder.toPath() + ") 를 찾았으나, mods폴더를 찾을 수 없습니다.");
+                    if (!ask(" 이곳에 mods폴더를 생성하고 등록하시겠습니까?")) manualReq = true;
+                    else if (!modsFolder.mkdirs()) throw new RuntimeException("폴더 생성에 실패했습니다.");
+                }
+                // 마인크래프트 폴더와 기본 모드폴더 둘 다 존재하는 경우
+                else if (mcFolder.exists() && modsFolder.exists()) {
+                    if (!ask("기본 경로 (" + modsFolder.toPath() + ") 를 찾았습니다. 이 경로로 등록하시겠습니까?")) manualReq = true;
+                }
+                // 둘 다 존재하지 않는 경우
+                else {
+                    printMessage("error", "기본 경로를 찾을 수 없습니다. 수동으로 등록하셔야 합니다.");
+                    manualReq = true;
                 }
 
-                if (!f.exists() || f.isFile()) {
+                if (manualReq) {
+                    String typedModsFolderPath = input("마인크래프트 'mods'폴더의 절대경로를 적어주세요");
+                    modsFolder = new File(typedModsFolderPath);
+                }
+
+                if (!modsFolder.exists() || modsFolder.isFile()) {
                     printMessage("error", "\n경로를 잘못 입력하셨습니다. 다시 시도해주세요.\n");
                     continue;
                 } else {
                     try {
                         JSONObject obj = new JSONObject();
-                        obj.put("path", f.toPath());
+                        obj.put("path", modsFolder.toPath());
                         obj.put("default", new JSONObject());
                         obj.put("ICT", new JSONArray());
 
@@ -234,7 +245,7 @@ public class Main extends Util {
                         writer.write(obj.toString(4));
                         writer.flush();
 
-                        modsDir = f;
+                        modsDir = modsFolder;
 
                         printMessage("info", "mods폴더가 성공적으로 등록되었습니다.");
                         pause(2000);
@@ -250,16 +261,21 @@ public class Main extends Util {
 
         do {
             clearConsole();
-            System.out.println();
-            System.out.println("Version " + ColorText.text(version, "blue", "none", true, false, false));
-            System.out.println(ColorText.text("Copyright 2024-2025. DSL All rights reserved.\n", "gray", "none", false, false, false));
-            System.out.println();
-
-            System.out.println(ColorText.text("· MENU", "blue", "none", true, false, false));
-            System.out.println();
 
             List<String> menuItem = Arrays.asList("ICT서버 설정", "수동 모드 적용하기", "설정", "업데이터 종료");
-            switch (Util.printMenu(menuItem, "DSL 모드 업데이트 관리자") + 1) {
+            String title = """
+                              +-----------------------------------------------------+
+                              |                                                     |
+                              |                   DSLModUpdater                     |
+                              |           "Improved Mod Download System"            |
+                              |                                                     |
+                              |                      vX.X.X                         |
+                              |                                                     |
+                              |   Copyright 2024-2025. DSL All rights reserved.     |
+                              |                                                     |
+                              +-----------------------------------------------------+
+            """.replace("DSLModUpdater", ColorText.text("DSLModUpdater", "white", "none", true, false, true)).replace("vX.X.X", ColorText.text(version, "black", "white", true, false, false));
+            switch (Util.printMenu(menuItem, "DSL 모드 업데이트 관리자", title, ColorText.text("  \uD83D\uDCC1 메인메뉴", "white", "none", true, false, false)) + 1) {
                 case 1 -> {
                     SetICT.run();
                     continue;
@@ -268,7 +284,7 @@ public class Main extends Util {
                 case 2 -> {
                     try {
                         // ByAgent 실행
-                        Runtime.getRuntime().exec("cmd /c start cmd.exe /k \"cd " + System.getProperty("user.dir") + " && .\\jre\\bin\\java.exe -jar DSLModUpdater.jar --ByAgent && exit");
+                        Runtime.getRuntime().exec("cmd /c start cmd.exe /k \"cd " + System.getProperty("user.dir") + " && .\\jre\\bin\\java.exe -jar DSLModUpdater.jar --ByAgent & exit");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -286,8 +302,6 @@ public class Main extends Util {
                         return;
                     } else continue;
                 }
-
-                case 5 -> Test.main(new String[0]);
 
                 default -> {
                     printMessage("error", "잘못 입력하셨습니다. 메인 화면으로 돌아갑니다...");

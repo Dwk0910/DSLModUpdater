@@ -78,7 +78,8 @@ public class Autorun extends Util {
             }
 
             // ICT선택창 출력
-            printMessage("info", "검사를 원하는 ICT서버를 선택하십시오. 검사를 건너뛰시려면 입력란에 skip을 입력하고 <ENTER>를 누르십시오.");
+            printMessage("info", "검사를 원하는 ICT서버를 선택하십시오.");
+            printMessage("info", "검사를 건너뛰시려면 입력란에 skip을 입력하고 <ENTER>를 누르십시오.");
             System.out.println();
             int index = 1;
             for (Object o : ictList) {
@@ -162,11 +163,13 @@ public class Autorun extends Util {
             // Step 2. Hash 값 비교
             else {
                 Map<String, Boolean> localModMap = new HashMap<>();
+                // localModMap 등록
                 for (File f : Objects.requireNonNull(modsDir.listFiles())) {
                     localModMap.put(hashFile(f), false);
                 }
 
                 try {
+                    // serverMods -> localModMap 비교
                     for (Object o : serverMods) {
                         JSONObject mod = new JSONObject(o.toString());
                         if (localModMap.get(mod.getString("hash")) == null) {
@@ -176,6 +179,7 @@ public class Autorun extends Util {
                         else localModMap.put(mod.getString("hash"), true);
                     }
 
+                    // localModMap -> serverMods 비교
                     for (String key : localModMap.keySet()) {
                         if (!localModMap.get(key)) {
                             isValid = false;
@@ -212,7 +216,7 @@ public class Autorun extends Util {
                         clearConsole();
 
                         printTitle("다운로드 완료");
-                        Main.tw.println();
+                        Main.out.println();
                         printMessage("info", "파일 다운로드가 완료되었습니다.");
 
                         printMessage("info", "mods 폴더를 정리합니다.");

@@ -17,6 +17,7 @@ import java.util.concurrent.Executors;
 
 public class DownloadMods {
     public static Map<String, String> statusMap = new HashMap<>();
+    public static Map<String, String> prnMap = new HashMap<>();
     public static void run(JSONArray mods, File targetFolder) {
         ExecutorService service = Executors.newFixedThreadPool(mods.length());
 
@@ -41,15 +42,20 @@ public class DownloadMods {
             service.shutdown();
             clearConsole();
 
+
             do {
-                pause(50);
-                Main.tw.println("\u001B[H"); // Move Cursor to first position
-                printMessage("info", "모드 " + ColorText.text(mods.length() + "개", "green", "none", true, false, false) + "를 다운로드 받는 중입니다. 잠시만 기다려 주십시오...");
-                for (String key : statusMap.keySet()) {
-                    Main.tw.println(" " + ColorText.text("[ " + key + " ".repeat(digit - key.length()) + "]", "green", "none", true, false, false) + " 번 째 모드..... " + statusMap.get(key));
+                if (!statusMap.equals(prnMap)) {
+                    Main.out.print("\u001B[H"); // Move Cursor to first position
+                    printMessage("info", "모드 " + ColorText.text(mods.length() + "개", "green", "none", true, false, false) + "를 다운로드 받는 중입니다. 잠시만 기다려 주십시오...");
+                    for (String key : statusMap.keySet()) {
+                        prnMap.put(key, statusMap.get(key));
+                        Main.out.println(" " + ColorText.text("[ " + key + " ".repeat(digit - key.length()) + "]", "green", "none", true, false, false) + " 번 째 모드..... " + statusMap.get(key));
+                    }
+                    Main.out.flush();
                 }
-                Main.tw.flush();
-            } while (!service.isTerminated() && statusMap.containsValue(ColorText.text("다운로드 중", "yellow", "none", false, false, false))); // DownloadStatus 출력 + ExecutorService가 완전히 종료될 때까지 대기
+                if (!service.isTerminated() || statusMap.containsValue(ColorText.text("다운로드 중", "yellow", "none", false, false, false)) || !statusMap.equals(prnMap)) continue;
+                else break;
+            } while (true); // DownloadStatus 출력 + ExecutorService가 완전히 종료될 때까지 대기
         } catch (JSONException e) {
             printMessage("info", "ICT서버의 mods배열이 손상되었습니다. ICT서버 관리자에게 문의하십시오.");
             pause(2000);
