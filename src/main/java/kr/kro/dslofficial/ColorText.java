@@ -9,8 +9,8 @@ public class ColorText {
 
         Ansi result = new Ansi();
         switch (color) {
-            case "white" -> result = Ansi.ansi().fg(Ansi.Color.WHITE);
-            case "black" -> result = Ansi.ansi().fgBlack();
+            case "white" -> result = Ansi.ansi().fgRgb(255, 255, 255);
+            case "black" -> result = Ansi.ansi().fgRgb(0, 0, 0);
             case "gray" -> result = Ansi.ansi().fg(158200);
             case "red" -> result = Ansi.ansi().fgRed();
             case "green" -> result = Ansi.ansi().fgGreen();
@@ -29,7 +29,7 @@ public class ColorText {
 
         if (!background.isEmpty()) {
             switch (background) {
-                case "white" -> result = result.bg(111111);
+                case "white" -> result = result.bgRgb(255, 255, 255);
                 case "red" -> result = result.bgRed();
                 case "green" -> result = result.bgGreen();
                 case "yellow" -> result = result.bgYellow();
