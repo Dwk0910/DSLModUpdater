@@ -8,17 +8,6 @@ DSL에서 공식적으로 모드서버를 연 서버의 경우 이 모드 메니
 ## 2. 설치 및 사용
 > [DSLModUpdater v2.0.0 SETUP 다운로드 링크](https://drive.google.com/file/d/1pxKPVpNKsqTVS7umtuvOCRDK5T1RDah8/view?usp=sharing)
 
-### 패치노트 (v2.0.0)
-Release Date : 2025.07.06.
-
-#### 새로운 기능
-- **이제부터 DSLModUpdater는 마인크래프트를 실행할 시 자동으로 실행됩니다.**
-- UI의 구동 방식이 전면으로 변경되었습니다.
-- 이제 모드 다운로드를 병렬로 처리하도록 바뀌어서, 다운로드 속도가 비약적으로 향상되었습니다.
-- 이제부터 모드 업데이터는 전용 setup 파일을 통해 배포됩니다.
-- 이제부터 다운로드 받는 서버 내 모드들은 `MOD_x.jar`의 형식으로 마스킹됩니다.
-- macOS의 지원이 일시적으로 중단되었습니다. (이 버전은 Windows용 버전입니다.)
-
 ### 2.1. 설치
 압축을 푼 뒤, `run.bat` 파일을 실행합니다.
 
