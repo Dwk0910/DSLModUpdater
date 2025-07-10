@@ -34,6 +34,19 @@ public class Main extends Util {
     public static PrintWriter out;
     public static LineReader reader;
     public static void main(String[] args) throws URISyntaxException {
+        // 전역 예외 처리 (디버그용)
+        // 디버그모드
+        if (args.length >= 1 && args[0].equals("--DEBUG")) {
+            Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+                try {
+                    System.out.println(throwable);
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
         try {
             t = TerminalBuilder.builder()
                     .system(true)
@@ -41,7 +54,9 @@ public class Main extends Util {
                     .jansi(true)
                     .build();
             out = t.writer();
-            reader = LineReaderBuilder.builder().terminal(Main.t).build();
+            reader = LineReaderBuilder.builder()
+                    .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
+                    .terminal(Main.t).build();
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(-1);
@@ -269,13 +284,13 @@ public class Main extends Util {
                               |                   DSLModUpdater                     |
                               |           "Improved Mod Download System"            |
                               |                                                     |
-                              |                      vX.X.X                         |
+                              |                     =vX.X.X=                        |
                               |                                                     |
                               |   Copyright 2024-2025. DSL All rights reserved.     |
                               |                                                     |
                               +-----------------------------------------------------+
-            """.replace("DSLModUpdater", ColorText.text("DSLModUpdater", "white", "none", true, false, true)).replace("vX.X.X", ColorText.text(version, "black", "white", true, false, false));
-            switch (Util.printMenu(menuItem, "DSL 모드 업데이트 관리자", title, ColorText.text("  \uD83D\uDCC1 메인메뉴", "white", "none", true, false, false)) + 1) {
+            """.replace("DSLModUpdater", ColorText.text("DSLModUpdater", "white", "none", true, false, true)).replace("=vX.X.X=", ColorText.text(" " + version + " ", "black", "white", true, false, false));
+            switch (Util.printMenu(menuItem, "DSL 모드 업데이트 관리자", title, ColorText.text(" ▼ 메인메뉴", "white", "none", true, false, false)) + 1) {
                 case 1 -> {
                     SetICT.run();
                     continue;
@@ -283,8 +298,16 @@ public class Main extends Util {
 
                 case 2 -> {
                     try {
-                        // ByAgent 실행
-                        Runtime.getRuntime().exec("cmd /c start cmd.exe /k \"cd " + System.getProperty("user.dir") + " && .\\jre\\bin\\java.exe -jar DSLModUpdater.jar --ByAgent & exit");
+                        JSONObject obj = getContent("updater.dat", JSONObject.class);
+                        JSONArray ictList = obj.getJSONArray("ICT");
+
+                        if (!ictList.isEmpty()) {
+                            // ByAgent 실행
+                            Runtime.getRuntime().exec("cmd /c start cmd.exe /k \"cd " + System.getProperty("user.dir") + " && .\\jre\\bin\\java.exe -jar DSLModUpdater.jar --ByAgent & exit");
+                        } else {
+                            printMessage("error", "등록된 ICT서버가 없습니다. 이 메뉴는 ICT서버가 한 개 이상 있어야 접근 가능합니다.");
+                            pause(2000);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

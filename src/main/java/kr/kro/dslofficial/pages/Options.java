@@ -26,7 +26,7 @@ public class Options extends Util {
 
             List<String> menu = Arrays.asList("업데이터 초기화", "mods폴더 위치 변경", "기본 ICT서버 비우기", "돌아가기");
 
-            switch (printMenu(menu, "모드 업데이터 설정") + 1) {
+            switch (printMenu(menu, "모드 업데이터 설정", "", ColorText.text(" ▼ 설정", "white", "none", true, false, false)) + 1) {
                 case 1 -> {
                     System.out.println();
                     if (!ask("정말 초기화 하시겠습니까? " + ColorText.text("이 작업은 되돌릴 수 없습니다!", "red", "none", true, false, false))) break;

@@ -34,41 +34,53 @@ Util.hashFile(java.lang.File) 함수 사용
  */
 public class SetICT extends Util {
     public static void run() {
+        String input = "";
         do {
             clearConsole();
             System.out.println();
 
             initialize();
             JSONObject data = getContent("updater.dat", JSONObject.class);
-            JSONArray ictList = parseStr(data.get("ICT").toString(), JSONArray.class);
+            JSONArray ictList = data.getJSONArray("ICT");
 
-            if (ictList.isEmpty()) printMessage("info", "ICT서버 리스트가 비어 있습니다. 추가하시려면 입력란에 add를 입력하십시오.");
-            else printMessage("info", "ICT서버를 추가하시려면 입력란에 add를 입력하십시오.");
+            if (!ictList.isEmpty()) {
+                printMessage("info", "ICT서버를 추가하시려면 입력란에 add를 입력하십시오.");
 
-            List<String> menuItem = new ArrayList<>();
-            for (Object o : ictList) {
-                JSONObject obj = parseStr(o.toString(), JSONObject.class);
-                if (!isValidICTObject(obj)) {
-                    printMessage("error", "updater.dat 파일이 손상되었습니다.");
-                    System.exit(0);
-                } else {
-                    try {
-                        if (!parseStr(data.get("default").toString(), JSONObject.class).isNull("URL") && parseStr(data.get("default").toString(), JSONObject.class).get("URL").equals(parseStr(o.toString(), JSONObject.class).get("URL"))) menuItem.add(ColorText.text(obj.get("name").toString(), "green", "none", false, false, false) + " - " + ColorText.text(obj.get("URL").toString(), "yellow", "none", false, false, false) + ColorText.text(" (자동검사 기본서버)", "b-yellow", "none", true, false, false));
-                        else menuItem.add(ColorText.text(obj.get("name").toString(), "green", "none", false, false, false) + " - " + ColorText.text(obj.get("URL").toString(), "yellow", "none", false, false, false));
-                    } catch (JSONException e) {
+                List<String> menuItem = new ArrayList<>();
+                for (Object o : ictList) {
+                    JSONObject obj = parseStr(o.toString(), JSONObject.class);
+                    if (!isValidICTObject(obj)) {
                         printMessage("error", "updater.dat 파일이 손상되었습니다.");
                         System.exit(0);
+                    } else {
+                        try {
+                            if (!parseStr(data.get("default").toString(), JSONObject.class).isNull("URL") && parseStr(data.get("default").toString(), JSONObject.class).get("URL").equals(parseStr(o.toString(), JSONObject.class).get("URL")))
+                                menuItem.add(ColorText.text(obj.get("name").toString(), "green", "none", false, false, false) + " - " + ColorText.text(obj.get("URL").toString(), "yellow", "none", false, false, false) + ColorText.text(" (자동검사 기본서버)", "b-yellow", "none", true, false, false));
+                            else
+                                menuItem.add(ColorText.text(obj.get("name").toString(), "green", "none", false, false, false) + " - " + ColorText.text(obj.get("URL").toString(), "yellow", "none", false, false, false));
+                        } catch (JSONException e) {
+                            printMessage("error", "updater.dat 파일이 손상되었습니다.");
+                            System.exit(0);
+                        }
                     }
                 }
+
+                printTitle("ICT서버 관리");
+                System.out.println();
+                printArrayMenu(menuItem);
+                System.out.println();
+
+                input = input("관리할 서버의 번호를 입력하십시오. (서버추가: add, 뒤로가기: exit)");
+            } else {
+                // 등록된 ICT서버가 없을 경우 강제로 add메뉴 진입
+                printTitle("ICT서버 관리");
+                printMessage("warn", "등록된 ICT서버가 없습니다. ICT서버를 추가해 주십시오.");
+                if (input.equals("add")) input = "exit";
+                else input = "add";
             }
 
-            printTitle("ICT서버 관리");
-            System.out.println();
-            printArrayMenu(menuItem);
-            System.out.println();
-
-            String input = input("관리할 서버의 번호를 입력하십시오. (서버추가: add, 뒤로가기: exit)");
             if (input.equalsIgnoreCase("exit")) break;
+            // ictList가 empty 상태일 경우 무조건 자동선택됨
             if (input.equalsIgnoreCase("add")) {
                 System.out.println();
                 printTitle("ICT서버 추가");
@@ -144,6 +156,21 @@ public class SetICT extends Util {
                 }
 
                 printMessage("info", typedName + " : ICT서버 추가가 완료되었습니다.");
+                // 기본 ICT서버가 없을 경우 이것으로 등록하겠냐 물어보기
+                if (data.getJSONObject("default").isNull("name") && ask("자동검사 기본 ICT서버가 없습니다. 이 ICT서버를 자동검사 기본서버로 등록하시겠습니까?\n" + ColorText.text("자동검사 기본서버로 등록하시면, 마인크래프트 실행 시 아무것도 하지 않아도 모드적용이 가능합니다.", "yellow", "none", true, false, false))) {
+                    data.put("default", new JSONObject().put("name", typedName).put("URL", url));
+                    try {
+                        File f = getContent("updater.dat", File.class);
+                        FileWriter writer = new FileWriter(f);
+                        writer.write(data.toString(4));
+                        writer.flush();
+                        writer.close();
+                        printMessage("info", "등록이 완료되었습니다.");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 pause(2000);
                 continue;
             } else {
