@@ -6,7 +6,7 @@ DSL에서 공식적으로 모드서버를 연 서버의 경우 이 모드 메니
 ***이제 모드를 직접 다운로드 하는 시대는 끝났습니다. 신세대를 맞이합시다!***
 
 ## 2. 설치 및 사용
-> [DSLModUpdater v2.0.0 SETUP 다운로드 링크](https://drive.google.com/file/d/1pxKPVpNKsqTVS7umtuvOCRDK5T1RDah8/view?usp=sharing)
+> [DSLModUpdater v2.0.1 SETUP 다운로드 링크](https://github.com/Dwk0910/DSLModUpdater/releases/download/v2.0.1/DSLModUpdater_v2.0.1_SETUP.zip)
 
 ### 2.1. 설치
 압축을 푼 뒤, `run.bat` 파일을 실행합니다.
