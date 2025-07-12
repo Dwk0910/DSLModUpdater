@@ -6,18 +6,7 @@ DSL에서 공식적으로 모드서버를 연 서버의 경우 이 모드 메니
 ***이제 모드를 직접 다운로드 하는 시대는 끝났습니다. 신세대를 맞이합시다!***
 
 ## 2. 설치 및 사용
-> [DSLModUpdater v2.0.0 SETUP 다운로드 링크](https://drive.google.com/file/d/1pxKPVpNKsqTVS7umtuvOCRDK5T1RDah8/view?usp=sharing)
-
-### 패치노트 (v2.0.0)
-Release Date : 2025.07.06.
-
-#### 새로운 기능
-- **이제부터 DSLModUpdater는 마인크래프트를 실행할 시 자동으로 실행됩니다.**
-- UI의 구동 방식이 전면으로 변경되었습니다.
-- 이제 모드 다운로드를 병렬로 처리하도록 바뀌어서, 다운로드 속도가 비약적으로 향상되었습니다.
-- 이제부터 모드 업데이터는 전용 setup 파일을 통해 배포됩니다.
-- 이제부터 다운로드 받는 서버 내 모드들은 `MOD_x.jar`의 형식으로 마스킹됩니다.
-- macOS의 지원이 일시적으로 중단되었습니다. (이 버전은 Windows용 버전입니다.)
+> [DSLModUpdater v2.0.2 SETUP 다운로드 링크](https://github.com/Dwk0910/DSLModUpdater/releases/download/v2.0.2/DSLModUpdater_v2.0.2_SETUP.zip)
 
 ### 2.1. 설치
 압축을 푼 뒤, `run.bat` 파일을 실행합니다.
@@ -33,16 +22,12 @@ Release Date : 2025.07.06.
 
 EULA 계약서입니다. 꼼꼼히 읽어보시고 '다음'을 선택, ENTER를 눌러 동의하실 수 있습니다.
 
-![image_3](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/3.png)
-
-`y`또는 `yes`를 입력하고 ENTER를 눌러 설치를 계속합니다.
-
 ![image_4](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/4.png)
 
 설치가 가능한 Minecraft의 버전을 자동으로 인식하여 띄워줍니다.
 설치를 원하는 버전의 번호를 입력한 뒤, ENTER를 눌러 계속합니다.
 
-이후 설치 완료 후 ENTER를 눌러 셋업파일을 마칩니다.
+이후 `q`를 입력하고 ENTER를 누른 뒤, 마지막으로 ENTER를 누르고 셋업파일을 마칩니다.
 
 ### 2.2. 실행
 당신의 `문서` 폴더로 들어간 뒤, `DSLModUpdater` 폴더를 찾아 들어갑니다.
@@ -55,34 +40,27 @@ ENTER를 눌러 계속합니다
 ![image_6](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/6.png)
 
 업데이터가 기본으로 마인크래프트 경로를 찾습니다.
-이 창이 뜨지 않는 경우, `%appdata%`내 `.minecraft\mods`가 없는 것입니다.<br/>
-마인크래프트를 %appdata% 내 `.minecraft` 폴더에 설치하지 않았을 경우 정상 동작이 안될 것입니다.
-이를 참고하여 설치해 주시기 바랍니다. (v2.1.0에서 개선 예정)
-
-`y`또는 `yes`를 입력하고 ENTER를 눌러 계속합니다
+업데이터가 찾은 기본 폴더로 계속하려면 `y`또는 `yes`를 입력하고 ENTER를 눌러 계속합니다
 
 ![image_7](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/7.png)
 위, 아래 방향키와 ENTER로 메뉴를 선택할 수 있습니다.
 
-| 메뉴이름 | 기능 |
-| ------- | ---- |
-| ICT서버 설정 | 검사에 사용될 ICT서버를 등록하고 관리합니다. ICT서버에 대해서는 후술 예정. |
-| 수동 모드 적용하기 | 자동 적용에 실패하였을 경우 이 메뉴를 통해 수동으로 마인크래프트에 모드를 적용할 수 있습니다.<br/>**이 때 마인크래프트가 꺼져 있어야 합니다!**
-| 설정 | `업데이터 초기화` `mods폴더 위치 변경` `기본 ICT서버 비우기`의 기능이 있습니다 |
-| 업데이터 종료 | 업데이터를 종료합니다. |
+| 메뉴이름       | 기능                                                                                    |
+|------------|---------------------------------------------------------------------------------------|
+| ICT서버 설정   | 검사에 사용될 ICT서버를 등록하고 관리합니다. ICT서버에 대해서는 후술 예정.                                         |
+| 수동 모드 적용하기 | 자동 적용에 실패하였을 경우 이 메뉴를 통해 수동으로 마인크래프트에 모드를 적용할 수 있습니다.<br/>**이 때 마인크래프트가 꺼져 있어야 합니다!** |
+| 설정         | `업데이터 초기화` `mods폴더 위치 변경` `기본 ICT서버 비우기`의 기능이 있습니다                                    |
+| 업데이터 종료    | 업데이터를 종료합니다.                                                                          |
 
 #### ICT서버 설정하기
 
 **ICT서버란?**<br/>
-ICT는 **I**ntegrity **C**heck **T**arget (무결성 검사 대상) 의 축약어로, 모드를 검사할 표본이 되는 서버를 일컫는 말입니다.<br/>
-만약 검사를 원하는 서버에서 ICT서버를 열고 있다면, 업데이터에 ICT URL을 입력하여 ICT서버(표본)와 동일한 모드를 당신의 마인크래프트 폴더에 자동으로 다운받을 수 있습니다.
+ICT는 **I**ntegrity **C**heck **T**arget (무결성 검사 대상) 의 축약어로, 쉽게말하여 모드들을 모아놓은 서버를 지칭합니다.<br/>
+사용자는 자신이 다운로드 받을 원하는 모드들을 모아둔 ICT서버의 URL을 입력하여 이곳에 등록하며,<br/>
+그 뒤로 DSLModUpdater는 ICT서버로부터 모드들의 정보를 불러와 사용자의 컴퓨터에 설치합니다.<br/>
 
 **ICT서버 설정하기**<br/>
 `ICT서버 설정` 메뉴에 들어갑니다.
-
-![image_8](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/8.png)
-
-`add`를 입력하고, ENTER를 누릅니다.
 
 ![image_9](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/9.png)
 
@@ -103,23 +81,9 @@ ICT서버의 URL을 입력합니다. ICT서버 URL은 각 서버 설명을 참�
 #### 자동 검사 서버로 등록하기
 
 **자동 검사란?**<br/>
-DSLModUpdater v2.0.0 의 신기능으로, 당신이 마인크래프트를 실행하게 되면 DSLModUpdater가 자동으로 실행되어 당신의 mods폴더를 읽고 무결성검사를 한 뒤 만약 잘못된 모드가 있다면 자동으로 모드를 다운로드 및 적용시킨 다음 마인크래프트가 켜지도록 도와줍니다.<br/>
-자동 검사를 하려면, ICT서버가 적어도 하나는 등록되어 있어야 하며, 매번 ICT서버를 선택하는 번거로움을 줄이려면 등록을 원하는 ICT 서버를 **`기본 ICT 서버`** 로 만들어야 합니다. 이 파트에서는 추가한 ICT서버를 자동검사의 대상으로 만드는 방법을 설명합니다.
-
-![image_13](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/13.png)
-
-등록을 원하는 서버의 번호를 입력한 뒤, ENTER를 눌러 설정 창으로 들어갑니다.
-
-![image_14](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/14.png)
-
-`기본 ICT 서버로 만들기`를 선택하고 ENTER를 눌러 해당 ICT 서버를 기본 ICT서버로 만듭니다.
-
-![image_15](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/15.png)
-
-`자동검사 기본서버`가 뜨면 성공적으로 기본 ICT서버로 등록된 것입니다.
-
-이후 `뒤로가기` -> `exit` 입력 후 ENTER -> `업데이터 종료`
-를 눌러 업데이터를 종료합니다.
+DSLModUpdater v2.0.0 부터 도입된 신기능으로, 당신이 마인크래프트를 실행하게 되면 DSLModUpdater가 자동으로 실행되어 당신의 mods폴더를 읽고 무결성검사를 한 뒤 만약 잘못된 모드가 있다면 자동으로 모드를 다운로드 및 적용시킨 다음 마인크래프트가 켜지도록 도와줍니다.<br/>
+자동 검사를 하려면, ICT서버가 적어도 하나는 등록되어 있어야 하며, 매번 ICT서버를 선택하는 번거로움을 줄이려면 등록을 원하는 ICT 서버를 **`기본 ICT 서버`** 로 만들어야 합니다.
+v2.0.1부터, 추가할 ICT서버를 자동검사서버로 등록할지에 대해 물어봅니다. `y` 또는 `yes`를 입력하고 ENTER를 누르면 자동검사 서버로 등록됩니다.
 
 ### 2.3. 구동 모습
 ![image_16](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/16.png)
@@ -143,7 +107,6 @@ DSLModUpdater v2.0.0 의 신기능으로, 당신이 마인크래프트를 실행
 ![image_20](https://raw.githubusercontent.com/Dwk0910/DSLModUpdater/refs/heads/master/docs/20.png)
 
 ## 3. Credits
-`@neatore`는 여러분들의 편하고 재밌는 서버생활을 위해 항상 코딩합니다.<br/>
 버그제보는 `@neatore`또는 `@dongwan0910` DM으로 부탁드립니다.<br/>
 **감사합니다.**
 
