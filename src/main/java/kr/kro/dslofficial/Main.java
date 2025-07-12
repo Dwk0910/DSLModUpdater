@@ -28,24 +28,18 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Main extends Util {
-    public static final String version = "v2.0.0";
+    public static final String version = "v2.0.2";
     public static final int width = 80;
     public static Terminal t;
     public static PrintWriter out;
     public static LineReader reader;
     public static void main(String[] args) throws URISyntaxException {
         // 전역 예외 처리 (디버그용)
-        // 디버그모드
-        if (args.length >= 1 && args[0].equals("--DEBUG")) {
-            Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-                try {
-                    System.out.println(throwable);
-                    Thread.sleep(10000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            if (throwable instanceof UserInterruptException) return;
+            throwable.printStackTrace();
+            Main.reader.readLine();
+        });
 
         try {
             t = TerminalBuilder.builder()
@@ -71,6 +65,7 @@ public class Main extends Util {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 printMessage("error", "업데이트 서버와의 연결 실패입니다. 관리자에게 문의해주세요.");
+                pause(3000);
                 return;
             }
 
@@ -78,18 +73,12 @@ public class Main extends Util {
             String new_ver = new String(bytes).replaceAll("\\s+", "");
             if (!new_ver.equals(version)) {
                 printMessage("error", "새로운 버전(" + new_ver + ")이 릴리즈되었습니다. 업데이트 후 실행해주세요.");
-                // javaagent에 의한 실행일 경우
-                if (args.length != 0 && args[0].equals("--ByAgent")) {
-                    try {
-                        Thread.sleep(3000);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                pause(3000);
                 return;
             }
         } catch (IOException e) {
             printMessage("error", "예외 발생 : " + e.getMessage());
+            pause(3000);
             return;
         }
 
