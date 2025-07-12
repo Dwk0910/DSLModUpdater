@@ -288,7 +288,7 @@ public class Main extends Util {
                 case 2 -> {
                     try {
                         JSONObject obj = getContent("updater.dat", JSONObject.class);
-                        JSONArray ictList = obj.getJSONArray("ICT");
+                        JSONArray ictList = new JSONArray(obj.get("ICT").toString());
 
                         if (!ictList.isEmpty()) {
                             // ByAgent 실행

@@ -41,7 +41,7 @@ public class SetICT extends Util {
 
             initialize();
             JSONObject data = getContent("updater.dat", JSONObject.class);
-            JSONArray ictList = data.getJSONArray("ICT");
+            JSONArray ictList = new JSONArray(data.get("ICT").toString());
 
             if (!ictList.isEmpty()) {
                 printMessage("info", "ICT서버를 추가하시려면 입력란에 add를 입력하십시오.");
