@@ -11,9 +11,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.Writer;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.IOException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -147,7 +150,7 @@ public class SetICT extends Util {
 
                 try {
                     File f = getContent("updater.dat", File.class);
-                    FileWriter writer = new FileWriter(f);
+                    Writer writer = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8);
                     writer.write(data.toString(4));
                     writer.flush();
                     writer.close();
@@ -155,22 +158,19 @@ public class SetICT extends Util {
                     e.printStackTrace();
                 }
 
-                printMessage("info", typedName + " : ICT서버 추가가 완료되었습니다.");
                 // 기본 ICT서버가 없을 경우 이것으로 등록하겠냐 물어보기
                 if (data.getJSONObject("default").isNull("name") && ask("자동검사 기본 ICT서버가 없습니다. 이 ICT서버를 자동검사 기본서버로 등록하시겠습니까?\n" + ColorText.text("자동검사 기본서버로 등록하시면, 마인크래프트 실행 시 아무것도 하지 않아도 모드적용이 가능합니다.", "yellow", "none", true, false, false))) {
-                    data.put("default", new JSONObject().put("name", typedName).put("URL", url));
-                    try {
-                        File f = getContent("updater.dat", File.class);
-                        FileWriter writer = new FileWriter(f);
-                        writer.write(data.toString(4));
-                        writer.flush();
-                        writer.close();
-                        printMessage("info", "등록이 완료되었습니다.");
+                    JSONObject fileDat = getContent("updater.dat", JSONObject.class);
+                    fileDat.put("default", new JSONObject().put("name", typedName).put("URL", url));
+                    try (Writer writer = new OutputStreamWriter(new FileOutputStream(getContent("updater.dat", File.class)), StandardCharsets.UTF_8)) {
+                        writer.write(fileDat.toString(4));
+                        printMessage("info", "등록을 완료하였습니다.");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
 
+                printMessage("info", typedName + " : ICT서버 추가가 완료되었습니다.");
                 pause(2000);
                 continue;
             } else {
@@ -225,7 +225,7 @@ public class SetICT extends Util {
 
                                 // 파일 쓰기
                                 File f = getContent("updater.dat", File.class);
-                                FileWriter writer = new FileWriter(f);
+                                Writer writer = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8);
                                 writer.write(data.toString(4));
                                 writer.flush();
                                 writer.close();
@@ -344,7 +344,7 @@ public class SetICT extends Util {
                                 if (ask("이 서버를 자동검사 기본 서버로 등록하시겠습니까?")) {
                                     data.put("default", new JSONObject().put("name", ict.get("name")).put("URL", ict.get("URL")));
                                     File f = getContent("updater.dat", File.class);
-                                    FileWriter fw = new FileWriter(f);
+                                    Writer fw = new OutputStreamWriter(new FileOutputStream(f));
                                     fw.write(data.toString(4));
                                     fw.flush();
                                     fw.close();
@@ -410,7 +410,7 @@ public class SetICT extends Util {
                     updaterdata.put("ICT", ictList);
 
                     File f = getContent("updater.dat", File.class);
-                    FileWriter fw = new FileWriter(f);
+                    Writer fw = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8);
                     fw.write(updaterdata.toString(4));
                     fw.flush();
                     fw.close();

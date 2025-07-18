@@ -55,6 +55,7 @@ public class DownloadMods {
                 else break;
             } while (true); // DownloadStatus 출력 + ExecutorService가 완전히 종료될 때까지 대기
         } catch (JSONException e) {
+            e.printStackTrace();
             printMessage("info", "ICT서버의 mods배열이 손상되었습니다. ICT서버 관리자에게 문의하십시오.");
             pause(2000);
             System.exit(-1);
