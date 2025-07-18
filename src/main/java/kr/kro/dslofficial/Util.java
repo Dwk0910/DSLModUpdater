@@ -11,7 +11,8 @@ import org.json.JSONArray;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.FileWriter;
+import java.io.Writer;
+import java.io.OutputStreamWriter;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -38,9 +39,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-/*
-TODO: 한계점: 마인크래프트가 '%appdata%/.minecraft'에 깔려 있을 경우에만 한하여 정상작동됨
- */
 public class Util {
     public static boolean ask(String message) {
         String prompt = ColorText.text(message, "yellow", "none", true, false, false) + " " + ColorText.text("[" + ColorText.text("Y", "white", "none", true, false, true) + "es/" + ColorText.text("N", "white", "none", true, false, true) + "o] ", "white", "none", false, false, false) + " : ";
@@ -81,7 +79,7 @@ public class Util {
                         if (!modsFolder.exists()) throw new Exception();
                         else modsDir = modsFolder;
                     } catch (Exception e) {
-                        FileWriter writer = new FileWriter(dataFile);
+                        Writer writer = new OutputStreamWriter(new FileOutputStream(dataFile), StandardCharsets.UTF_8);
                         writer.write("");
                         writer.flush();
                         writer.close();
@@ -103,8 +101,8 @@ public class Util {
                 if (f.getName().equals(filename)) {
                     Object result = switch (targetClass.getSimpleName()) {
                         case "File" -> f;
-                        case "JSONObject" -> new JSONObject(Files.readString(f.toPath()));
-                        case "JSONArray" -> new JSONArray(Files.readString(f.toPath()));
+                        case "JSONObject" -> new JSONObject(Files.readString(f.toPath(), StandardCharsets.UTF_8));
+                        case "JSONArray" -> new JSONArray(Files.readString(f.toPath(), StandardCharsets.UTF_8));
                         default -> throw new IllegalArgumentException("지원하지 않는 클래스입니다.");
                     };
 

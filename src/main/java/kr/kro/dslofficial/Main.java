@@ -13,22 +13,25 @@ import org.jline.reader.UserInterruptException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.PrintWriter;
 import java.io.IOException;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.Writer;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
 
 import java.net.URI;
 import java.net.URL;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
 public class Main extends Util {
-    public static final String version = "v2.0.2";
+    public static final String version = "v2.0.3";
     public static final int width = 80;
     public static Terminal t;
     public static PrintWriter out;
@@ -245,7 +248,7 @@ public class Main extends Util {
                         obj.put("default", new JSONObject());
                         obj.put("ICT", new JSONArray());
 
-                        FileWriter writer = new FileWriter(dataFile);
+                        Writer writer = new OutputStreamWriter(new FileOutputStream(dataFile), StandardCharsets.UTF_8);
                         writer.write(obj.toString(4));
                         writer.flush();
 
@@ -288,7 +291,7 @@ public class Main extends Util {
                 case 2 -> {
                     try {
                         JSONObject obj = getContent("updater.dat", JSONObject.class);
-                        JSONArray ictList = obj.getJSONArray("ICT");
+                        JSONArray ictList = new JSONArray(obj.get("ICT").toString());
 
                         if (!ictList.isEmpty()) {
                             // ByAgent 실행

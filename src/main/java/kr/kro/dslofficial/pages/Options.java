@@ -8,11 +8,14 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.Writer;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +36,7 @@ public class Options extends Util {
                     Main.printMessage("info", "Request processing started.");
 
                     try {
-                        FileWriter writer = new FileWriter(Main.fileList.get(0));
+                        Writer writer = new OutputStreamWriter(new FileOutputStream(Main.fileList.get(0)), StandardCharsets.UTF_8);
                         writer.write("");
                         writer.flush();
                         writer.close();
@@ -86,7 +89,7 @@ public class Options extends Util {
 
                                 // map to obj and write it in.
                                 JSONObject obj_new = new JSONObject(map);
-                                FileWriter writer = new FileWriter(Main.fileList.get(0));
+                                Writer writer = new OutputStreamWriter(new FileOutputStream(Main.fileList.get(0)), StandardCharsets.UTF_8);
                                 writer.write(obj_new.toJSONString());
                                 writer.flush();
                                 writer.close();
@@ -110,7 +113,7 @@ public class Options extends Util {
                         try {
                             org.json.JSONObject object = getContent("updater.dat", org.json.JSONObject.class);
                             File f = getContent("updater.dat", File.class);
-                            FileWriter writer = new FileWriter(f);
+                            Writer writer = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8);
                             object.put("default", new JSONObject());
                             writer.write(object.toString(4));
                             writer.flush();

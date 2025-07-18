@@ -188,6 +188,7 @@ public class Autorun extends Util {
                     }
                 // 다르게 catch 필요
                 } catch (JSONException e) {
+                    e.printStackTrace();
                     printMessage("error", "ICT서버 mods 배열에 오류가 있습니다. ICT서버 관리자에게 문의하십시오.");
                     pause(3000);
                     return;
