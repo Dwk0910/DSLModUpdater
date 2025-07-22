@@ -4,9 +4,8 @@ import kr.kro.dslofficial.ColorText;
 import kr.kro.dslofficial.Main;
 import kr.kro.dslofficial.Util;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.Writer;
 import java.io.OutputStreamWriter;
@@ -16,6 +15,8 @@ import java.io.File;
 import java.io.FileReader;
 
 import java.nio.charset.StandardCharsets;
+
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -74,15 +75,13 @@ public class Options extends Util {
                             }
 
                             try {
-                                JSONParser parser = new JSONParser();
                                 FileReader reader = new FileReader(Main.fileList.get(0));
-                                JSONObject obj = (JSONObject) parser.parse(reader);
+                                JSONObject obj = new JSONObject(Files.readString(Main.fileList.get(0).toPath(), StandardCharsets.UTF_8));
 
                                 // obj to map
                                 Map<String, String> map = new HashMap<>();
                                 for (Object o : obj.keySet()) {
-                                    String key = (String) o;
-                                    map.put(key, obj.get(key).toString());
+                                    map.put(o.toString(), obj.get(o.toString()).toString());
                                 }
 
                                 map.put("path", input);
@@ -90,7 +89,7 @@ public class Options extends Util {
                                 // map to obj and write it in.
                                 JSONObject obj_new = new JSONObject(map);
                                 Writer writer = new OutputStreamWriter(new FileOutputStream(Main.fileList.get(0)), StandardCharsets.UTF_8);
-                                writer.write(obj_new.toJSONString());
+                                writer.write(obj_new.toString(4));
                                 writer.flush();
                                 writer.close();
 
@@ -99,7 +98,7 @@ public class Options extends Util {
                                 Main.printMessage("info", "mods폴더 변경이 완료되었습니다.");
                                 Util.pause(2000);
                                 break;
-                            } catch (IOException | ParseException e) {
+                            } catch (IOException | JSONException e) {
                                 e.printStackTrace();
                                 System.exit(-1);
                             }

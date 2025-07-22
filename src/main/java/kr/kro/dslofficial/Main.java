@@ -30,6 +30,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
+/*
+TODO: Setup에서 사용 가능한 버전이 없을 때 설치를 취소해야함. (+ 포지 설치 안내)
+TODO: ICT서버 추가 시 URL에 아무것도 입력하지 않아도 넘어가짐
+TODO: ICT서버 정보(이름, URL등)를 변경할 때, 해당 ICT서버가 자동검사 기본서버로 등록되어 있으면, "ICT":[] 배열만 수정되고 기본서버 오브젝트는 수정되지 않음
+
+"path": "C:\~~~~~~",
+"default": {
+    "name":"안녕하세요",
+    "URL":"http://mods.dslofficial.kro.kr"          <== 여기는 수정이 안됨
+},
+"ICT": [{
+    "name":"DCS",
+    "URL":"http://mods.dslofficial.kro.kr           <== 여기는 수정 됨
+}]
+ */
+
 public class Main extends Util {
     public static final String version = "v2.0.3";
     public static final int width = 80;

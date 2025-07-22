@@ -29,7 +29,6 @@ jar {
 }
 
 dependencies {
-    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
     implementation 'commons-io:commons-io:2.19.0'
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
     implementation 'org.json:json:20250517'
