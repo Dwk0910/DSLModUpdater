@@ -2,9 +2,9 @@ package kr.kro.dslofficial.old;
 
 import static kr.kro.dslofficial.Main.printMessage;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+//import org.json.simple.JSONObject;
+//import org.json.simple.parser.JSONParser;
+//import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -57,23 +57,23 @@ public class CheckMods {
             zipTarget.extractAll(System.getProperty("user.dir") + File.separator + "temp");
 
             // get local modlist
-            JSONParser parser = new JSONParser();
+//            JSONParser parser = new JSONParser();
             File updaterDataFile = new File(System.getProperty("user.dir") + File.separator + "updater.dat");
             FileReader reader = new FileReader(updaterDataFile);
 
-            JSONObject updaterData = (JSONObject) parser.parse(reader);
-            File localModDirPath = new File(updaterData.get("path").toString());
+//            JSONObject updaterData = (JSONObject) parser.parse(reader);
+//            File localModDirPath = new File(updaterData.get("path").toString());
 
-            if (localModDirPath.listFiles() == null) {
-                printMessage("info", "적합성 검사가 완료되었습니다.");
-                Thread.sleep(2000);
-                return false;
-            }
+//            if (localModDirPath.listFiles() == null) {
+//                printMessage("info", "적합성 검사가 완료되었습니다.");
+//                Thread.sleep(2000);
+//                return false;
+//            }
 
             HashMap<String, Long> localModList = new HashMap<>();
-            for (File f : Objects.requireNonNull(localModDirPath.listFiles())) {
-                if (f.getName().split("\\.")[f.getName().split("\\.").length - 1].equalsIgnoreCase("jar")) localModList.put(f.getName(), f.length());
-            }
+//            for (File f : Objects.requireNonNull(localModDirPath.listFiles())) {
+//                if (f.getName().split("\\.")[f.getName().split("\\.").length - 1].equalsIgnoreCase("jar")) localModList.put(f.getName(), f.length());
+//            }
 
             fos.close();
             is.close();
@@ -130,15 +130,16 @@ public class CheckMods {
             } catch (InterruptedException e2) {
                 e2.printStackTrace();
             }
-        } catch (ParseException e) {
-            try {
-                printMessage("error", "updater.dat이 손상되었습니다.");
-                Thread.sleep(2000);
-                System.exit(-1);
-            } catch (InterruptedException e2) {
-                e2.printStackTrace();
-            }
         }
+//        } catch (ParseException e) {
+//            try {
+//                printMessage("error", "updater.dat이 손상되었습니다.");
+//                Thread.sleep(2000);
+//                System.exit(-1);
+//            } catch (InterruptedException e2) {
+//                e2.printStackTrace();
+//            }
+//        }
 
         System.exit(-1);
         return false;
