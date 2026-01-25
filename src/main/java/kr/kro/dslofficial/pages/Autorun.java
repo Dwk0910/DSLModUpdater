@@ -157,6 +157,8 @@ public class Autorun extends Util {
             }
 
             // 비교 시작
+            printMessage("info", "검사중입니다. 잠시만 기다려 주십시오...");
+
             boolean isValid = true;
             // Step 1. 파일 갯수가 동일하여야 함
             if (modsDir.listFiles() != null && Objects.requireNonNull(modsDir.listFiles()).length != serverMods.length()) isValid = false;
