@@ -47,7 +47,7 @@ TODO: ICT서버 정보(이름, URL등)를 변경할 때, 해당 ICT서버가 자
  */
 
 public class Main extends Util {
-    public static final String version = "v2.0.3";
+    public static final String version = "v2.0.4";
     public static final int width = 80;
     public static Terminal t;
     public static PrintWriter out;
