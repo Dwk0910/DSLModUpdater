@@ -409,6 +409,13 @@ public class SetICT extends Util {
                     ictList.put(ict);
                     updaterdata.put("ICT", ictList);
 
+                    try {
+                        // 만약 default로 등록되어 있는 ICT라면 그것도 변경
+                        if (updaterdata.getJSONObject("default").getString("name").equals(targetICTName))
+                            updaterdata.put("default", ict);
+                    // default ICT가 없을 수도 있음
+                    } catch (JSONException ignored) {}
+
                     File f = getContent("updater.dat", File.class);
                     Writer fw = new OutputStreamWriter(new FileOutputStream(f), StandardCharsets.UTF_8);
                     fw.write(updaterdata.toString(4));
